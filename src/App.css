@@ -1,0 +1,19 @@
+/* App.css */
+
+body {
+  font-family: 'Inter', sans-serif; /* Modern and clean font */
+  background-color: #f4f7fa; /* Lighter background for less strain */
+}
+
+textarea, input, button {
+  font-family: 'Inter', sans-serif;
+}
+
+.react-datepicker__day:hover {
+  background-color: #2a9d8f;
+}
+
+.react-datepicker__day--selected:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(33, 107, 165, 0.8);
+} 

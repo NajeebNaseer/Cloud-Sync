@@ -1,0 +1,52 @@
+/* body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+} */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Styles for the scrollbar */
+.scrollbar-thin {
+  scrollbar-width: thin;
+}
+
+.scrollbar-thumb-blue-500 {
+  scrollbar-color: #4299e1 transparent; /* Use your theme blue or any preferred color */
+}
+
+/* For WebKit browsers like Chrome and Safari */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 8px; /* width of the entire scrollbar */
+}
+
+.scrollbar-thumb-blue-500::-webkit-scrollbar-thumb {
+  background-color: #4299e1; /* thumb color */
+  border-radius: 4px;
+}
+
+.scrollbar-track-gray-100::-webkit-scrollbar-track {
+  background: #f7fafc; /* track color */
+}
+@keyframes skeleton {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Optional: Enhance the global style for rounded elements */
+.rounded-lg {
+  overflow: hidden;
+}
