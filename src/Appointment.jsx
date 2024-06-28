@@ -402,7 +402,7 @@ const Appointment = () => {
         <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-opacity-50 bg-gray-700">
           <div className="bg-white p-8 rounded-lg shadow-lg text-center">
             <h2 className="text-2xl font-bold mb-4 text-red-600">Error</h2>
-            <p className="text-lg mb-4 text-gray-700">{error?.message}</p>
+            <p className="text-lg mb-4 text-gray-700">{error?.msg}</p>
             <button
               onClick={() => setError(null)}
               className="mt-4 w-full bg-[#00c19c] hover:bg-[#008a73] text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300 ease-in-out"
