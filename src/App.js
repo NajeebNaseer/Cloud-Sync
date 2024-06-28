@@ -11,7 +11,10 @@ function App() {
 
         <Routes>
           {/* <Route path="/" element={<Appointment />} /> */}
-          <Route path="/LifeRx/:name/:email/:phone" element={<Appointment />} />
+          <Route
+            path="/90days/:first_name/:last_name/:dob"
+            element={<Appointment />}
+          />
           {/* Define other routes as needed */}
         </Routes>
 

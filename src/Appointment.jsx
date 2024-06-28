@@ -18,7 +18,7 @@ import Row from "./components/Row";
 import Button from "./components/Button";
 
 const Appointment = () => {
-  const { name, email, phone } = useParams();
+  const { name, email, phone, first_name, last_name, dob } = useParams();
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState({});
   const [availableSlots, setAvailableSlots] = useState();
@@ -28,10 +28,10 @@ const Appointment = () => {
   const [steps, setSteps] = useState(1);
 
   useEffect(() => {
-    localStorage.setItem("name", name);
+    localStorage.setItem("name", first_name + " " + last_name);
     return () => localStorage.clear;
-  }, [name]);
-  localStorage.setItem("name", name);
+  }, [last_name, first_name]);
+  // localStorage.setItem("name", first_name + last_name);
 
   const centsToDollars = (cents) => {
     return `$${(cents / 100).toFixed(2)}`;
@@ -94,9 +94,9 @@ const Appointment = () => {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
-          first_name: "dummy1",
-          last_name: "13",
-          date_of_birth: "1982-07-14"
+          first_name: first_name,
+          last_name: last_name,
+          date_of_birth: dob
         })
       });
       if (!response.ok) {
