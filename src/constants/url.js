@@ -1,1 +1,1 @@
-export const url='http://68.183.228.130:1337'
+export const url = "https://liferxstaging.codekhalaq.com/";

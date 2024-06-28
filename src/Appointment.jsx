@@ -29,7 +29,9 @@ const Appointment = () => {
 
   useEffect(() => {
     localStorage.setItem("name", name);
+    return () => localStorage.clear;
   }, [name]);
+  localStorage.setItem("name", name);
 
   const centsToDollars = (cents) => {
     return `$${(cents / 100).toFixed(2)}`;
@@ -86,7 +88,7 @@ const Appointment = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${url}/api/v1/prognosis/get_free_slots/`, {
+      const response = await fetch(`${url}api/v1/prognosis/get_free_slots/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -109,37 +111,6 @@ const Appointment = () => {
     }
   };
 
-  useEffect(() => {
-    // const fetchData = async () => {
-    //   setLoading(true);
-    //   try {
-    //     const response = await fetch(
-    //       "http://68.183.228.130:1337/api/v1/prognosis/get_free_slots/",
-    //       {
-    //         method: "POST",
-    //         headers: {
-    //           "Content-Type": "application/json"
-    //         },
-    //         body: JSON.stringify({
-    //           first_name: "dummy1",
-    //           last_name: "13",
-    //           date_of_birth: "1982-07-14"
-    //         })
-    //       }
-    //     );
-    //     if (!response.ok) {
-    //       throw new Error("Network response was not ok");
-    //     }
-    //     const result = await response.json();
-    //     setData(result);
-    //   } catch (error) {
-    //     setError(error);
-    //   } finally {
-    //     setLoading(false);
-    //   }
-    // };
-  }, []);
-
   const [dates, setDates] = useState();
 
   useEffect(() => {
@@ -157,7 +128,7 @@ const Appointment = () => {
 
     setLoading(true);
     try {
-      const response = await fetch(`${url}/api/v1/prognosis/set_appointment/`, {
+      const response = await fetch(`${url}api/v1/prognosis/set_appointment/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -258,13 +229,9 @@ const Appointment = () => {
     setCardValid(validateCardNumber(number));
   };
 
-  const handleConfirmPayment = () => {
-    alert("Handling confirm payment...");
-  };
-
   return (
     <div className="flex container mx-auto flex-col min-h-screen">
-      <Header userName="Mian Razzaq" userImage="" />
+      <Header userName={name} userImage="" />
 
       {steps === 4 && (
         <Confirmation setSteps={setSteps} setShowConfirmation={setforms} />
@@ -311,7 +278,7 @@ const Appointment = () => {
                     }),
                     menuList: (provided) => ({
                       ...provided,
-                      maxHeight: "150px",
+                      maxHeight: "120px",
                       overflowY: "auto"
                     })
                   }}
