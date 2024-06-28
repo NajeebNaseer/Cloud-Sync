@@ -25,6 +25,7 @@ const Appointment = () => {
   const [steps, setSteps] = useState(1);
 
   useEffect(() => {
+    localStorage.clear();
     localStorage.setItem("name", first_name + " " + last_name);
     return () => localStorage.clear();
   }, [last_name, first_name]);
@@ -77,6 +78,7 @@ const Appointment = () => {
   }
 
   const [data, setData] = useState([]);
+  const [UID, setUID] = useState();
 
   const [isLoading, setLoading] = useState(false);
 
@@ -115,6 +117,7 @@ const Appointment = () => {
       const filteredSlots = filterNonOverlappingSlots(data?.slots);
       const availableDates = extractAvailableDates(data?.slots);
       setDates(availableDates);
+      setUID(data?.UID);
 
       setAvailableSlots(filteredSlots);
     }
@@ -134,13 +137,10 @@ const Appointment = () => {
         body: JSON.stringify({
           visit_type: 5,
           reason: "Test Reason",
-
           location_id: "",
-          provider_id: selectedDate?.rovider_id ? selectedDate?.rovider_id : "",
-          patient_id: 1590,
+          provider_id: selectedDate?.provider_id,
+          patient_id: UID,
           start_time: selectedDate?.start_time
-            ? selectedDate?.start_time
-            : "2022-01-25T09:00:00"
         })
       });
       if (!response.ok) {

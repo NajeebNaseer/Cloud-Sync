@@ -4,7 +4,6 @@ import LOGO from "./LogoNew.png";
 function Header({ userName, userImage }) {
   let name = userName || localStorage.getItem("name");
 
-
   return (
     <div className="bg-white text-gray-800 px-4 sm:px-5 flex justify-between items-center">
       <img src={LOGO} alt="Logo" className=" h-8  sm:h-16 w-auto" />
@@ -12,7 +11,7 @@ function Header({ userName, userImage }) {
         title="90 Days Recheck Plan"
         className="hidden md:block text-xl sm:text-2xl md:text-4xl text-gray-800 font-bold truncate max-w-[40%]"
       >
-        90 Days Recheck Plan
+        90 Days Check Plan
       </div>
 
       <div className="flex items-center space-x-3">
