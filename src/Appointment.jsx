@@ -123,7 +123,13 @@ const Appointment = () => {
     }
   }, [data]);
 
+  function removeTimezoneOffset(datetimeString) {
+    const date = new Date(datetimeString);
 
+    const isoString = date.toISOString().replace("Z", "");
+
+    return isoString;
+  }
 
   const handleConfirmBooking = async () => {
     // setSteps(3);
@@ -142,7 +148,7 @@ const Appointment = () => {
           location_id: "",
           provider_id: selectedTime?.provider_id,
           patient_id: UID,
-          start_time: selectedTime?.start_time
+          start_time: removeTimezoneOffset(selectedTime?.start_time)
         })
       });
       if (!response.ok) {
