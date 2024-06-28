@@ -145,7 +145,7 @@ const Appointment = () => {
         body: JSON.stringify({
           visit_type: 5,
           reason: "",
-          location_id: "",
+          location_id: 3,
           provider_id: selectedTime?.provider_id,
           patient_id: UID,
           start_time: removeTimezoneOffset(selectedTime?.start_time)
