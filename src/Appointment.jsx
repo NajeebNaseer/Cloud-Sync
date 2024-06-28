@@ -11,14 +11,11 @@ import { stateOptions } from "./constants/statesLis";
 import Confirmation from "./components/confirmation";
 import { useParams } from "react-router-dom";
 import { usePaymentInputs } from "react-payment-inputs";
-// import ErrorMessage from "../../components/ErrorMessage";
-import { url } from "./constants/url";
 import Input from "./components/Input";
-import Row from "./components/Row";
-import Button from "./components/Button";
+import { url } from "./constants/url";
 
 const Appointment = () => {
-  const { name, email, phone, first_name, last_name, dob } = useParams();
+  const { name, first_name, last_name, dob } = useParams();
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState({});
   const [availableSlots, setAvailableSlots] = useState();
@@ -29,9 +26,8 @@ const Appointment = () => {
 
   useEffect(() => {
     localStorage.setItem("name", first_name + " " + last_name);
-    return () => localStorage.clear;
+    return () => localStorage.clear();
   }, [last_name, first_name]);
-  // localStorage.setItem("name", first_name + last_name);
 
   const centsToDollars = (cents) => {
     return `$${(cents / 100).toFixed(2)}`;
@@ -104,8 +100,9 @@ const Appointment = () => {
       }
       const result = await response.json();
       setData(result);
+      setSteps(2);
     } catch (error) {
-      setError(error);
+      setError(error.message);
     } finally {
       setLoading(false);
     }
@@ -153,7 +150,7 @@ const Appointment = () => {
       setData(result);
       setSteps(3);
     } catch (error) {
-      setError(error);
+      setError(error.message);
     } finally {
       setLoading(false);
     }
@@ -187,7 +184,6 @@ const Appointment = () => {
 
   const [form, setforms] = useState(false);
   const handleConfirm = () => {
-    setSteps(2);
     setShowModal(false);
     fetchData();
   };
@@ -229,6 +225,7 @@ const Appointment = () => {
     setCardValid(validateCardNumber(number));
   };
 
+  console.log("error", error);
   return (
     <div className="flex container mx-auto flex-col min-h-screen">
       <Header userName={name} userImage="" />
@@ -398,6 +395,21 @@ const Appointment = () => {
       {isLoading && (
         <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center bg-opacity-50 bg-gray-700">
           <ThreeDots color="#FFFFFF" height={80} width={80} />
+        </div>
+      )}
+
+      {error && (
+        <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-opacity-50 bg-gray-700">
+          <div className="bg-white p-8 rounded-lg shadow-lg text-center">
+            <h2 className="text-2xl font-bold mb-4 text-red-600">Error</h2>
+            <p className="text-lg mb-4 text-gray-700">{error?.message}</p>
+            <button
+              onClick={() => setError(null)}
+              className="mt-4 w-full bg-[#00c19c] hover:bg-[#008a73] text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300 ease-in-out"
+            >
+              Close
+            </button>
+          </div>
         </div>
       )}
 
