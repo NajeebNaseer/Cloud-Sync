@@ -123,6 +123,8 @@ const Appointment = () => {
     }
   }, [data]);
 
+
+
   const handleConfirmBooking = async () => {
     // setSteps(3);
 
@@ -136,11 +138,11 @@ const Appointment = () => {
 
         body: JSON.stringify({
           visit_type: 5,
-          reason: "Test Reason",
+          reason: "",
           location_id: "",
-          provider_id: selectedDate?.provider_id,
+          provider_id: selectedTime?.provider_id,
           patient_id: UID,
-          start_time: selectedDate?.start_time
+          start_time: selectedTime?.start_time
         })
       });
       if (!response.ok) {
