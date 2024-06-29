@@ -16,7 +16,7 @@ function Header({ userName, userImage }) {
 
       <div className="flex items-center space-x-3">
         <h1 className="text-base sm:text-lg capitalize font-bold truncate max-w-[100px] sm:max-w-none">
-          {name}
+          {userName}
         </h1>
 
         {userImage ? (
@@ -28,7 +28,7 @@ function Header({ userName, userImage }) {
         ) : (
           <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-[#00c19c] flex items-center justify-center">
             <span className="text-lg sm:text-xl font-semibold capitalize text-white">
-              {name ? name[0] : ""}
+              {userName[0] }
             </span>
           </div>
         )}

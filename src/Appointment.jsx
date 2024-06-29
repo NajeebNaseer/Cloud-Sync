@@ -25,9 +25,9 @@ const Appointment = () => {
   const [steps, setSteps] = useState(1);
 
   useEffect(() => {
-    localStorage.clear();
+    localStorage.removeItem("name");
     localStorage.setItem("name", first_name + " " + last_name);
-    return () => localStorage.clear();
+    return () => localStorage.removeItem("name");
   }, [last_name, first_name]);
 
   const centsToDollars = (cents) => {
@@ -35,12 +35,25 @@ const Appointment = () => {
   };
 
   function formatTime(date) {
-    return date.toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true
+    // Format the date part
+    const dateString = date.toLocaleDateString("en-US", {
+      month: "2-digit", // two-digit month
+      day: "2-digit", // two-digit day
+      year: "numeric" // full year
     });
+
+    // Format the time part
+    const timeString = date.toLocaleTimeString("en-US", {
+      hour: "2-digit", // two digits for hour
+      minute: "2-digit", // two digits for minute
+      hour12: true // 12-hour format with AM/PM
+    });
+
+    // Combine date and time strings
+    return `${dateString}, ${timeString}`;
   }
+
+  // Example usage:
 
   function filterNonOverlappingSlots(appointmentSlots) {
     appointmentSlots.sort(
@@ -48,8 +61,7 @@ const Appointment = () => {
     );
 
     const nonOverlappingSlots = [];
-    let lastEndTime = new Date(0);
-
+    let lastEndTime = new Date();
     appointmentSlots.forEach((slot) => {
       const startTime = new Date(slot.start_time);
       const endTime = new Date(slot.end_time);
@@ -70,10 +82,10 @@ const Appointment = () => {
     const dateSet = new Set();
 
     appointmentSlots.forEach((slot) => {
-      const date = new Date(slot.start_time).toLocaleDateString("en-US");
-      dateSet.add(date);
+      const date = new Date(slot.start_time);
+      let formattedDate = date.toISOString().slice(0, 10);
+      dateSet.add(formattedDate);
     });
-
     return Array.from(dateSet);
   }
 
@@ -115,10 +127,10 @@ const Appointment = () => {
   useEffect(() => {
     if (data?.slots) {
       const filteredSlots = filterNonOverlappingSlots(data?.slots);
-      const availableDates = extractAvailableDates(data?.slots);
+      const availableDates = extractAvailableDates(filteredSlots);
+
       setDates(availableDates);
       setUID(data?.UID);
-
       setAvailableSlots(filteredSlots);
     }
   }, [data]);
@@ -236,7 +248,7 @@ const Appointment = () => {
   console.log("error", error);
   return (
     <div className="flex container mx-auto flex-col min-h-screen">
-      <Header userName={name} userImage="" />
+      <Header userName={first_name + " " + last_name} userImage="" />
 
       {steps === 4 && (
         <Confirmation setSteps={setSteps} setShowConfirmation={setforms} />
@@ -304,36 +316,41 @@ const Appointment = () => {
       {
         <div className="flex-grow flex items-center justify-center bg-gray-100">
           {steps === 2 && (
-            // <div>Select a time to meet with a licensed provider</div>
-            <div className="max-w-4xl mx-auto w-full p-4 sm:p-8 bg-white shadow-2xl rounded-lg flex flex-col sm:flex-row justify-around border border-gray-200 space-y-4 sm:space-y-0 sm:space-x-4">
-              <div className="flex flex-col items-center justify-center space-y-4 px-4 py-8">
-                <h2 className="text-lg sm:text-xl font-semibold mb-6 sm:mb-8">
-                  Select Date
-                </h2>
-                <CustomDatePicker
-                  dates={dates}
-                  selectedDate={selectedDate}
-                  setSelectedDate={setSelectedDate}
-                />
+            <>
+              <div className="max-w-4xl mx-auto w-full p-4 sm:p-8 bg-white shadow-2xl rounded-lg flex flex-col sm:flex-row justify-around border border-gray-200 space-y-4 sm:space-y-0 sm:space-x-4">
+                <div className="flex flex-col items-center justify-center space-y-4 px-4 py-8">
+                  <h2 className="text-lg sm:text-xl font-semibold mb-6 sm:mb-8">
+                    Select Date
+                  </h2>
+
+                  <CustomDatePicker
+                    dates={dates}
+                    selectedDate={selectedDate}
+                    setSelectedDate={setSelectedDate}
+                  />
+                </div>
+                <div className="flex flex-col space-y-4 px-4 py-8">
+                  <div className="text-center">
+                    Select a time to meet with a licensed provider
+                  </div>
+                  <TimeSlots
+                    setSelectedDate={setSelectedDate}
+                    selectedDate={selectedDate}
+                    selectedTime={selectedTime}
+                    setSelectedTime={setSelectedTime}
+                    slots={availableSlots}
+                    loadMoreSlots={loadMoreSlots}
+                  />
+                  <button
+                    onClick={handleConfirmBooking}
+                    className="w-full bg-[#00c19c] hover:bg-[#008a73] text-white font-bold py-2 px-4 rounded-lg shadow-lg"
+                    disabled={isLoading}
+                  >
+                    Confirm Booking
+                  </button>
+                </div>
               </div>
-              <div className="flex flex-col space-y-4 px-4 py-8">
-                <TimeSlots
-                  setSelectedDate={setSelectedDate}
-                  selectedDate={selectedDate}
-                  selectedTime={selectedTime}
-                  setSelectedTime={setSelectedTime}
-                  slots={availableSlots}
-                  loadMoreSlots={loadMoreSlots}
-                />
-                <button
-                  onClick={handleConfirmBooking}
-                  className="w-full bg-[#00c19c] hover:bg-[#008a73] text-white font-bold py-2 px-4 rounded-lg shadow-lg"
-                  disabled={isLoading}
-                >
-                  Confirm Booking
-                </button>
-              </div>
-            </div>
+            </>
           )}
           {steps === 3 && (
             <ConfirmationDetails

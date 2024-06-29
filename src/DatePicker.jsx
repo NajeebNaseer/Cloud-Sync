@@ -5,8 +5,10 @@ import "react-datepicker/dist/react-datepicker.css"; // Default styles
 function CustomDatePicker({ selectedDate, setSelectedDate, dates }) {
   const availableDates = dates?.map((dateString) => new Date(dateString));
   useEffect(() => {
-    setSelectedDate(availableDates?.[0]);
-  }, [availableDates, dates]);
+    if (!selectedDate) {
+      setSelectedDate(availableDates?.[0]);
+    }
+  }, [availableDates]);
 
   const highlightWithCircle = availableDates?.reduce((acc, date) => {
     const dateString = date?.toISOString().split("T")[0]; // Format to YYYY-MM-DD
