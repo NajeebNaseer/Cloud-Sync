@@ -102,7 +102,7 @@ const Appointment = () => {
     const dates = appointmentsArray.map(
       (appointment) => appointment.appointmentDate
     );
-    const uniqueDates = Array.from(new Set(dates)); 
+    const uniqueDates = Array.from(new Set(dates));
     return uniqueDates;
   };
 
@@ -114,6 +114,7 @@ const Appointment = () => {
   const [error, setError] = useState(null);
   const fetchData = async () => {
     setLoading(true);
+    setError(null); // Reset the error state each time the function is called
     try {
       const response = await fetch(`${url}api/v1/prognosis/get_free_slots/`, {
         method: "POST",
@@ -126,14 +127,17 @@ const Appointment = () => {
           date_of_birth: dob
         })
       });
+
       if (!response.ok) {
-        throw new Error("Network response was not ok");
+        // throw new Error(`HTTP error! status: ${response.status}`); // Throw an Error with the status code
+        throw new Error(`Oops! Something went wrong, Please contact support`);
       }
+
       const result = await response.json();
       setData(result);
       setSteps(2);
     } catch (error) {
-      console.log("error", error);
+      console.log("error.parse", error);
       setError(error.message);
     } finally {
       setLoading(false);
