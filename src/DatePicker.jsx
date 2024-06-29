@@ -3,25 +3,25 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css"; // Default styles
 
 function CustomDatePicker({ selectedDate, setSelectedDate, dates }) {
-  const availableDates = dates?.map((dateString) => new Date(dateString));
+  // const availableDates = dates?.map((dateString) => new Date(dateString));
   useEffect(() => {
     if (!selectedDate) {
-      setSelectedDate(availableDates?.[0]);
+      setSelectedDate(dates?.[0]);
     }
-  }, [availableDates]);
+  }, [dates]);
 
-  const highlightWithCircle = availableDates?.reduce((acc, date) => {
-    const dateString = date?.toISOString().split("T")[0]; // Format to YYYY-MM-DD
-    acc[dateString] = {
-      customStyles: {
-        classNames: ["highlighted-day-circle"],
-        style: {
-          color: "white" // Text color inside the circle
-        }
-      }
-    };
-    return acc;
-  }, {});
+  // const highlightWithCircle = dates?.reduce((acc, date) => {
+  //   const dateString = date?.toISOString().split("T")[0]; // Format to YYYY-MM-DD
+  //   acc[dateString] = {
+  //     customStyles: {
+  //       classNames: ["highlighted-day-circle"],
+  //       style: {
+  //         color: "white" // Text color inside the circle
+  //       }
+  //     }
+  //   };
+  //   return acc;
+  // }, {});
 
   return (
     <>
@@ -54,12 +54,12 @@ function CustomDatePicker({ selectedDate, setSelectedDate, dates }) {
         `}
       </style>
       <DatePicker
-        selected={selectedDate ? selectedDate : availableDates?.[0]}
+        selected={selectedDate ? selectedDate : dates?.[0]}
         onChange={(date) => setSelectedDate(date)}
         dateFormat="MMMM d, yyyy"
         inline
-        highlightDates={highlightWithCircle}
-        includeDates={availableDates}
+        highlightDates={dates}
+        includeDates={dates}
       />
     </>
   );

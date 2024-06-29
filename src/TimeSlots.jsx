@@ -1,5 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import dayjs from "dayjs";
+import moment from "moment";
+
+import { parseISO, isEqual, format } from "date-fns";
+
 const SkeletonLoader = () => {
   return (
     <div className="grid grid-cols-3 gap-3 p-3">
@@ -32,17 +36,31 @@ const TimeSlots = ({
   const [filteredSlots, setFilteredSlots] = useState();
 
   const filterSlotsByDate = (date) => {
-    const selectedDateString = dayjs(date).format("YYYY-MM-DD");
-    const filteredSlots = slots?.filter((slot) => {
-      let slotDate = slot.start_time.split("T")[0];
-      return slotDate === selectedDateString;
+    // console.log("Formatted date for filtering:", selectedDateString);
+
+    const selectedDateString = moment(date).format("DD/MM/YYYY");
+    console.log("Formatted date for filtering:", selectedDateString);
+    let filter = [];
+
+    slots.forEach((slot) => {
+      const dateObject = parseISO(slot.start_time);
+      const formattedDate = format(dateObject, "yyyy/MM/dd");
+      isEqual(formattedDate, date);
+      const formattedDateTwo = format(dateObject, "yyyy/MM/dd");
+
+      console.log("compare these two", formattedDate, selectedDateString);
+      console.log(
+        "Is the startTime the same as anotherDate? ",
+        isEqual(formattedDate, date)
+      );
+      if (isEqual(formattedDate, date)) {
+        filter.push(slot);
+      }
     });
 
-    setFilteredSlots(filteredSlots);
+    setFilteredSlots(filter);
   };
   useEffect(() => {
-    console.log("Selected Date:", selectedDate); // Debugging
-    console.log("Slots available:", slots); // Debugging
     if (selectedDate && slots.length > 0) {
       filterSlotsByDate(selectedDate);
     }

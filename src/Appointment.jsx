@@ -53,7 +53,16 @@ const Appointment = () => {
     return `${dateString}, ${timeString}`;
   }
 
-  // Example usage:
+  function formatDate(date) {
+    // Format the date part
+    const dateString = date.toLocaleDateString("en-US", {
+      month: "2-digit", // two-digit month
+      day: "2-digit", // two-digit day
+      year: "numeric" // full year
+    });
+
+    return `${dateString}`;
+  }
 
   function filterNonOverlappingSlots(appointmentSlots) {
     appointmentSlots.sort(
@@ -69,7 +78,8 @@ const Appointment = () => {
         nonOverlappingSlots.push({
           ...slot,
           appointmentStart: formatTime(startTime),
-          appointmentEnd: formatTime(endTime)
+          appointmentEnd: formatTime(endTime),
+          appointmentDate: formatDate(endTime)
         });
         lastEndTime = endTime;
       }
@@ -80,7 +90,6 @@ const Appointment = () => {
 
   function extractAvailableDates(appointmentSlots) {
     const dateSet = new Set();
-
     appointmentSlots.forEach((slot) => {
       const date = new Date(slot.start_time);
       let formattedDate = date.toISOString().slice(0, 10);
@@ -88,6 +97,14 @@ const Appointment = () => {
     });
     return Array.from(dateSet);
   }
+
+  const getUniqueAppointmentDates = (appointmentsArray) => {
+    const dates = appointmentsArray.map(
+      (appointment) => appointment.appointmentDate
+    );
+    const uniqueDates = Array.from(new Set(dates)); 
+    return uniqueDates;
+  };
 
   const [data, setData] = useState([]);
   const [UID, setUID] = useState();
@@ -116,6 +133,7 @@ const Appointment = () => {
       setData(result);
       setSteps(2);
     } catch (error) {
+      console.log("error", error);
       setError(error.message);
     } finally {
       setLoading(false);
@@ -129,7 +147,10 @@ const Appointment = () => {
       const filteredSlots = filterNonOverlappingSlots(data?.slots);
       const availableDates = extractAvailableDates(filteredSlots);
 
-      setDates(availableDates);
+      let res = getUniqueAppointmentDates(filteredSlots);
+      console.log("res", res);
+      // setDates(availableDates);
+      setDates(res);
       setUID(data?.UID);
       setAvailableSlots(filteredSlots);
     }
@@ -146,42 +167,50 @@ const Appointment = () => {
   const handleConfirmBooking = async () => {
     // setSteps(3);
 
-    setLoading(true);
-    try {
-      const response = await fetch(`${url}api/v1/prognosis/set_appointment/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
+    let body = {
+      visit_type: 5,
+      reason: "",
+      location_id: 3,
+      provider_id: selectedTime?.provider_id,
+      patient_id: UID,
+      start_time: selectedTime?.start_time
+    };
 
-        body: JSON.stringify({
-          visit_type: 5,
-          reason: "",
-          location_id: 3,
-          provider_id: selectedTime?.provider_id,
-          patient_id: UID,
-          start_time: removeTimezoneOffset(selectedTime?.start_time)
-        })
-      });
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
+    console.log("body", body);
+    if (true) {
+      setLoading(true);
+      try {
+        const response = await fetch(
+          `${url}api/v1/prognosis/set_appointment/`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify(body)
+          }
+        );
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        const result = await response.json();
+        setData(result);
+        setSteps(3);
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
       }
-      const result = await response.json();
-      setData(result);
-      setSteps(3);
-    } catch (error) {
-      setError(error.message);
-    } finally {
-      setLoading(false);
+
+      ////
+
+      setLoading(true);
+      setTimeout(() => {
+        setLoading(false);
+        setShowPaymentForm(true);
+      }, 2000);
     }
-
-    ////
-
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      setShowPaymentForm(true);
-    }, 2000);
   };
 
   const handleStateChange = (selectedOption) => {
@@ -427,7 +456,7 @@ const Appointment = () => {
         <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-opacity-50 bg-gray-700">
           <div className="bg-white p-8 rounded-lg shadow-lg text-center">
             <h2 className="text-2xl font-bold mb-4 text-red-600">Error</h2>
-            <p className="text-lg mb-4 text-gray-700">{error?.msg}</p>
+            <p className="text-lg mb-4 text-gray-700">{error}</p>
             <button
               onClick={() => setError(null)}
               className="mt-4 w-full bg-[#00c19c] hover:bg-[#008a73] text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300 ease-in-out"
