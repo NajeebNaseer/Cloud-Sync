@@ -1,27 +1,15 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Appointment from "./Appointment.jsx"; // Ensure this is the correct path
-import Header from "./Header";
-import Footer from "./Footer";
-import NotFound from "./404"; // Include the NotFound component
+import Appointment from "./pages/Appointment";
+import NotFound from "./404";
 
 function App() {
   return (
     <Router>
       <div className="flex flex-col min-h-screen">
-        {/* <Header userName="Mian Razzaq" userImage="" /> */}
-
         <Routes>
-          {/* <Route path="/" element={<Appointment />} /> */}
-          <Route
-            path="/90days/:first_name/:last_name/:dob"
-            element={<Appointment />}
-          />
-
-          {/* Catch-all route for 404 */}
+          <Route path="/90days" element={<Appointment />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
-
-        {/* <Footer /> */}
       </div>
     </Router>
   );

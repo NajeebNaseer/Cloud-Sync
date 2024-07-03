@@ -1,64 +1,108 @@
 import React, { useEffect, useState } from "react";
-import CustomDatePicker from "./DatePicker";
-import TimeSlots from "./TimeSlots";
+import CustomDatePicker from "../DatePicker";
+import TimeSlots from "../TimeSlots";
 import { ThreeDots } from "react-loader-spinner";
-import Header from "./Header";
-import Footer from "./Footer";
+import Header from "../Header";
+import Footer from "../Footer";
 import Select from "react-select";
-import ConfirmationDetails from "./ConfirmationDetails";
-import { slots } from "./constants/slots";
-import { stateOptions } from "./constants/statesLis";
-import Confirmation from "./components/confirmation";
-import { useParams } from "react-router-dom";
+import ConfirmationDetails from "../ConfirmationDetails";
+import { slots } from "../constants/slots";
+import { stateOptions } from "../constants/statesLis";
+import Confirmation from "../components/confirmation";
+import { useParams, useSearchParams } from "react-router-dom";
 import { usePaymentInputs } from "react-payment-inputs";
-import Input from "./components/Input";
-import { url } from "./constants/url";
+import Input from "../components/Input";
+import { url } from "../constants/url";
 
 const Appointment = () => {
-  const { name, first_name, last_name, dob } = useParams();
+  let [searchParams] = useSearchParams();
+  let first_name = searchParams.get("first_name");
+  let last_name = searchParams.get("last_name");
+  let phone = searchParams.get("phone");
+  let email = searchParams.get("email");
+  let state = searchParams.get("state");
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState({});
   const [availableSlots, setAvailableSlots] = useState();
   const [showModal, setShowModal] = useState(true);
-  const [selectedState, setSelectedState] = useState(null);
+  const [selectedState, setSelectedState] = useState(state);
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [steps, setSteps] = useState(1);
+  const [currentTime, setCurrentTime] = useState("");
+
+  // function getTimeZoneForState(selectedState) {
+  //   const state = stateOptions.find((state) => state.value === selectedState);
+
+  //   if (state) {
+  //     return state.timeZone;
+  //   } else {
+  //     return null;
+  //   }
+  // }
+
+  function getTimeZoneForState(selectedState) {
+    const filteredStates = stateOptions.filter(
+      (state) => state.value === selectedState
+    );
+    if (filteredStates.length > 0) {
+      return filteredStates[0].timeZone;
+    } else {
+      return null;
+    }
+  }
+
+  // useEffect(() => {
+  //   let timer = "";
+  //   if (selectedState) {
+  //     // timer = setInterval(() => {
+  //     const newDate = new Date();
+  //     const timeFormatter = new Intl.DateTimeFormat("en-US", {
+  //       timeZone: getTimeZoneForState(selectedState),
+  //       hour: "numeric",
+  //       minute: "numeric",
+  //       second: "numeric",
+  //       hour12: true
+  //     });
+  //     setCurrentTime(timeFormatter.format(newDate));
+  //     // }, 1000);
+  //   }
+
+  //   // return () => clearInterval(timer);
+  // }, [selectedState]);
+
+  console.log("currentTime", currentTime);
 
   useEffect(() => {
+    // console.log(
+    //   " getTimeZoneForState(selectedState)",
+    //   getTimeZoneForState(selectedState)
+    // );
     localStorage.removeItem("name");
     localStorage.setItem("name", first_name + " " + last_name);
     return () => localStorage.removeItem("name");
   }, [last_name, first_name]);
 
-  const centsToDollars = (cents) => {
-    return `$${(cents / 100).toFixed(2)}`;
-  };
-
   function formatTime(date) {
-    // Format the date part
     const dateString = date.toLocaleDateString("en-US", {
-      month: "2-digit", // two-digit month
-      day: "2-digit", // two-digit day
-      year: "numeric" // full year
+      month: "2-digit",
+      day: "2-digit",
+      year: "numeric"
     });
 
-    // Format the time part
     const timeString = date.toLocaleTimeString("en-US", {
-      hour: "2-digit", // two digits for hour
-      minute: "2-digit", // two digits for minute
-      hour12: true // 12-hour format with AM/PM
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true
     });
 
-    // Combine date and time strings
     return `${dateString}, ${timeString}`;
   }
 
   function formatDate(date) {
-    // Format the date part
     const dateString = date.toLocaleDateString("en-US", {
-      month: "2-digit", // two-digit month
-      day: "2-digit", // two-digit day
-      year: "numeric" // full year
+      month: "2-digit",
+      day: "2-digit",
+      year: "numeric"
     });
 
     return `${dateString}`;
@@ -88,16 +132,6 @@ const Appointment = () => {
     return nonOverlappingSlots;
   }
 
-  function extractAvailableDates(appointmentSlots) {
-    const dateSet = new Set();
-    appointmentSlots.forEach((slot) => {
-      const date = new Date(slot.start_time);
-      let formattedDate = date.toISOString().slice(0, 10);
-      dateSet.add(formattedDate);
-    });
-    return Array.from(dateSet);
-  }
-
   const getUniqueAppointmentDates = (appointmentsArray) => {
     const dates = appointmentsArray.map(
       (appointment) => appointment.appointmentDate
@@ -114,28 +148,40 @@ const Appointment = () => {
   const [error, setError] = useState(null);
   const fetchData = async () => {
     setLoading(true);
-    setError(null); // Reset the error state each time the function is called
+    setError(null);
     try {
       const response = await fetch(`${url}api/v1/prognosis/get_free_slots/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
         },
+
         body: JSON.stringify({
           first_name: first_name,
           last_name: last_name,
-          date_of_birth: dob
+          phone_number: phone,
+          email: email,
+          state: selectedState?.value
         })
+
+        // body: JSON.stringify({
+        //   first_name: first_name,
+        //   last_name: last_name,
+        //   date_of_birth: dob
+        // })
       });
 
       if (!response.ok) {
-        // throw new Error(`HTTP error! status: ${response.status}`); // Throw an Error with the status code
         throw new Error(`Oops! Something went wrong, Please contact support`);
       }
 
       const result = await response.json();
       setData(result);
-      setSteps(2);
+      if (result?.slots.length > 0) {
+        setSteps(2);
+      } else {
+        setNoSlot(true);
+      }
     } catch (error) {
       console.log("error.parse", error);
       setError(error.message);
@@ -145,32 +191,37 @@ const Appointment = () => {
   };
 
   const [dates, setDates] = useState();
+  const getDate = () => {
+    let date = new Date();
+
+    const options = {
+      weekday: "long", // e.g., Monday
+      year: "numeric", // e.g., 2024
+      month: "long", // e.g., July
+      day: "numeric", // e.g., 13
+      hour: "2-digit", // e.g., 02 PM
+      minute: "2-digit", // e.g., 45
+      second: "2-digit", // e.g., 30
+      hour12: true // Use 12-hour clock (AM/PM)
+    };
+
+    return date.toLocaleString("en-US", options);
+  };
+  // var date = new Date();
 
   useEffect(() => {
     if (data?.slots) {
+      // if (slots) {
       const filteredSlots = filterNonOverlappingSlots(data?.slots);
-      const availableDates = extractAvailableDates(filteredSlots);
-
+      // const filteredSlots = filterNonOverlappingSlots(slots);
       let res = getUniqueAppointmentDates(filteredSlots);
-      console.log("res", res);
-      // setDates(availableDates);
       setDates(res);
       setUID(data?.UID);
       setAvailableSlots(filteredSlots);
     }
   }, [data]);
 
-  function removeTimezoneOffset(datetimeString) {
-    const date = new Date(datetimeString);
-
-    const isoString = date.toISOString().replace("Z", "");
-
-    return isoString;
-  }
-
   const handleConfirmBooking = async () => {
-    // setSteps(3);
-
     let body = {
       visit_type: 5,
       reason: "",
@@ -180,7 +231,6 @@ const Appointment = () => {
       start_time: selectedTime?.start_time
     };
 
-    console.log("body", body);
     if (true) {
       setLoading(true);
       try {
@@ -206,33 +256,11 @@ const Appointment = () => {
       } finally {
         setLoading(false);
       }
-
-      ////
-
-      setLoading(true);
-      setTimeout(() => {
-        setLoading(false);
-        setShowPaymentForm(true);
-      }, 2000);
     }
   };
 
   const handleStateChange = (selectedOption) => {
     setSelectedState(selectedOption);
-  };
-
-  const loadMoreSlots = () => {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        setAvailableSlots((prevSlots) => [
-          ...prevSlots,
-          "12:00 PM",
-          "01:00 PM",
-          "02:00 PM"
-        ]);
-        resolve();
-      }, 1500);
-    });
   };
 
   const [form, setforms] = useState(false);
@@ -242,15 +270,7 @@ const Appointment = () => {
   };
   const { meta, getCardNumberProps, getExpiryDateProps, getCVCProps } =
     usePaymentInputs();
-  const [cardNumber, setCardNumber] = useState("");
-  const [expiry, setExpiry] = useState("");
-  const [cvv, setCvv] = useState("");
-  const [cardValid, setCardValid] = useState(undefined);
-
-  const validateCardNumber = (number) => {
-    const regex = /^(?:3[47][0-9]{13})$/;
-    return regex.test(number);
-  };
+  const [noSlot, setNoSlot] = useState(false);
 
   const [forms, setForm] = useState({
     name: "",
@@ -260,36 +280,51 @@ const Appointment = () => {
     cardCVC: ""
   });
 
-  const price = 1999; // $19.99
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // onNext(form);
   };
 
   const handleChange = () => {};
-  const handleCardNumberChange = (e) => {
-    const number = e.target.value;
-    setCardNumber(number);
-    if (number.length === 0) {
-      setCardValid(undefined);
-      return;
+
+  useEffect(() => {
+    let initialStateValue = searchParams.get("state");
+    if (initialStateValue) {
+      const foundState = stateOptions.find(
+        (opt) => opt.value === initialStateValue
+      );
+      if (foundState) {
+        setSelectedState(foundState);
+      }
     }
-    setCardValid(validateCardNumber(number));
+  }, [searchParams]);
+
+  const handleBack = () => {
+    setSteps((prev) => (prev === 5 ? prev - 2 : prev - 1));
   };
 
-  console.log("error", error);
   return (
-    <div className="flex container mx-auto flex-col min-h-screen">
+    <div className="flex flex-col min-h-screen">
       <Header userName={first_name + " " + last_name} userImage="" />
-
+      <div
+        title="90 Days Recheck Plan"
+        className="md:hidden block text-xl sm:text-2xl md:text-4xl text-center text-gray-800 font-bold  "
+      >
+        90 Days Check Plan
+      </div>
       {steps === 4 && (
         <Confirmation setSteps={setSteps} setShowConfirmation={setforms} />
       )}
-
+      <div className="bg-gray-100 flex justify-start">
+        <button
+          onClick={handleBack}
+          className="mx-4 w-[100px] my-4 bg-[#00c19c] hover:bg-[#008a73] text-white font-bold py-2 px-4 rounded-3xl shadow-lg transition duration-300 ease-in-out"
+        >
+          Back
+        </button>
+      </div>
       {steps === 1 && (
-        <div className="flex-grow flex items-center md:py-20 justify-center bg-gray-100">
-          <div className="max-w-4xl mx-auto w-full p-4 md:p-8 bg-white shadow-2xl rounded-lg flex flex-col md:flex-row justify-around border border-gray-200 md:space-x-4">
+        <div className="md:flex-grow flex items-center md:py-20 justify-center md:bg-gray-100">
+          <div className="max-w-4xl mx-auto w-full p-4 md:p-8 bg-white md:shadow-2xl rounded-lg flex flex-col md:flex-row justify-around md:border border-gray-200 md:space-x-4">
             <div className="flex-1 flex flex-col md:py-10 items-center justify-center space-y-4 p-4">
               <div className="space-y-4">
                 <h1 className="text-2xl md:text-4xl font-bold text-center text-gray-800">
@@ -308,12 +343,15 @@ const Appointment = () => {
                 <Select
                   options={stateOptions}
                   onChange={handleStateChange}
+                  value={selectedState}
                   isClearable
                   placeholder="Search and select a state..."
+                  getOptionLabel={(option) => option.label}
+                  getOptionValue={(option) => option.value}
                   styles={{
                     control: (base) => ({
                       ...base,
-                      minHeight: 50,
+                      minHeight: 40,
                       borderColor: "rgba(0, 123, 255, 0.2)",
                       boxShadow: "0 2px 6px 0 rgba(0, 0, 0, 0.1)",
                       "&:hover": {
@@ -337,7 +375,7 @@ const Appointment = () => {
               <div className="w-full px-4 md:w-96">
                 <button
                   onClick={handleConfirm}
-                  className="mt-4 w-full bg-[#00c19c] hover:bg-[#008a73] text-white font-bold py-2 px-4 rounded-lg shadow-lg transition duration-300 ease-in-out"
+                  className="mt-4 w-full bg-[#00c19c] hover:bg-[#008a73] text-white font-bold py-2 px-4 rounded-3xl shadow-lg transition duration-300 ease-in-out"
                 >
                   Confirm
                 </button>
@@ -346,41 +384,45 @@ const Appointment = () => {
           </div>
         </div>
       )}
+
       {
-        <div className="flex-grow flex items-center justify-center bg-gray-100">
+        <div className="md:flex-grow flex items-center justify-center bg-gray-100">
           {steps === 2 && (
             <>
-              <div className="max-w-4xl mx-auto w-full p-4 sm:p-8 bg-white shadow-2xl rounded-lg flex flex-col sm:flex-row justify-around border border-gray-200 space-y-4 sm:space-y-0 sm:space-x-4">
-                <div className="flex flex-col items-center justify-center space-y-4 px-4 py-8">
-                  <h2 className="text-lg sm:text-xl font-semibold mb-6 sm:mb-8">
-                    Select Date
-                  </h2>
-
-                  <CustomDatePicker
-                    dates={dates}
-                    selectedDate={selectedDate}
-                    setSelectedDate={setSelectedDate}
-                  />
-                </div>
-                <div className="flex flex-col space-y-4 px-4 py-8">
-                  <div className="text-center">
-                    Select a time to meet with a licensed provider
+              <div className="max-w-4xl mx-auto w-full p-4 sm:p-0 bg-white shadow-2xl rounded-lg flex flex-col justify-between border border-gray-200 space-y-4 sm:space-y-0 sm:space-x-4 h-full">
+                <div className="grid grid-cols-2">
+                  <div className="flex flex-col items-center justify-center space-y-4">
+                    <h2 className="text-lg sm:text-xl font-semibold mb-6 sm:mb-8">
+                      Select Date
+                    </h2>
+                    <CustomDatePicker
+                      dates={dates}
+                      selectedDate={selectedDate}
+                      setSelectedDate={setSelectedDate}
+                    />
                   </div>
-                  <TimeSlots
-                    setSelectedDate={setSelectedDate}
-                    selectedDate={selectedDate}
-                    selectedTime={selectedTime}
-                    setSelectedTime={setSelectedTime}
-                    slots={availableSlots}
-                    loadMoreSlots={loadMoreSlots}
-                  />
-                  <button
-                    onClick={handleConfirmBooking}
-                    className="w-full bg-[#00c19c] hover:bg-[#008a73] text-white font-bold py-2 px-4 rounded-lg shadow-lg"
-                    disabled={isLoading}
-                  >
-                    Confirm Booking
-                  </button>
+                  <div className="flex flex-col space-y-4 px-4 py-8">
+                    <div className="text-center">
+                      Select a time to meet with a licensed provider
+                    </div>
+                    <TimeSlots
+                      setSelectedDate={setSelectedDate}
+                      selectedDate={selectedDate}
+                      selectedTime={selectedTime}
+                      setSelectedTime={setSelectedTime}
+                      slots={availableSlots}
+                    />
+                    <button
+                      onClick={handleConfirmBooking}
+                      className="w-full bg-[#00c19c] hover:bg-[#008a73] text-white font-bold py-2 px-4 rounded-3xl shadow-lg"
+                      disabled={isLoading}
+                    >
+                      Confirm Booking
+                    </button>
+                  </div>
+                </div>
+                <div className="text-center text-lg font-medium py-4">
+                  {getDate()}
                 </div>
               </div>
             </>
@@ -440,7 +482,7 @@ const Appointment = () => {
 
                 <button
                   onClick={() => setSteps(5)}
-                  className="mt-4 w-full bg-[#00c19c] hover:bg-[#008a73] text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300 ease-in-out"
+                  className="mt-4 w-full bg-[#00c19c] hover:bg-[#008a73] text-white font-bold py-2 px-4 rounded-3xl transition-colors duration-300 ease-in-out"
                 >
                   Confirm Appointment
                 </button>
@@ -451,8 +493,38 @@ const Appointment = () => {
       }
 
       {isLoading && (
-        <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center bg-opacity-50 bg-gray-700">
-          <ThreeDots color="#FFFFFF" height={80} width={80} />
+        <div className="absolute bg-black top-0 left-0 w-full h-full flex flex-col items-center justify-center bg-opacity-50">
+          <style>
+            {`
+          @keyframes bubble {
+              0%, 100% {
+                  transform: translateY(0);
+              }
+              50% {
+                  transform: translateY(-20px);
+              }
+          }
+          .bubbling-text span {
+              display: inline-block;
+              animation: bubble 1.5s ease-in-out infinite;
+          }
+          .bubbling-text span:nth-child(1) { animation-delay: 0.1s; }
+          .bubbling-text span:nth-child(2) { animation-delay: 0.2s; }
+          .bubbling-text span:nth-child(3) { animation-delay: 0.3s; }
+          .bubbling-text span:nth-child(4) { animation-delay: 0.4s; }
+          .bubbling-text span:nth-child(5) { animation-delay: 0.5s; }
+          .bubbling-text span:nth-child(6) { animation-delay: 0.6s; }
+          .bubbling-text span:nth-child(7) { animation-delay: 0.7s; }
+        `}
+          </style>
+          <div className="p-6 bg-white bg-opacity-100 rounded-lg flex flex-col items-center justify-center">
+            <p className="text-[#008a73] mt-3 text-xl bubbling-text">
+              {
+                "Finding Available Slots and a licensed practitioner in your state"
+              }
+            </p>
+            <ThreeDots color="#008a73" height={80} width={80} />
+          </div>
         </div>
       )}
 
@@ -463,7 +535,23 @@ const Appointment = () => {
             <p className="text-lg mb-4 text-gray-700">{error}</p>
             <button
               onClick={() => setError(null)}
-              className="mt-4 w-full bg-[#00c19c] hover:bg-[#008a73] text-white font-bold py-2 px-4 rounded-lg transition-colors duration-300 ease-in-out"
+              className="mt-4 w-full bg-[#00c19c] hover:bg-[#008a73] text-white font-bold py-2 px-4 rounded-3xl transition-colors duration-300 ease-in-out"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {noSlot && (
+        <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-opacity-50 bg-gray-700">
+          <div className="bg-white p-8 rounded-lg shadow-lg text-center">
+            <h2 className="text-2xl font-bold mb-4 text-red-600">
+              No Slots Found Please contact admin
+            </h2>
+            <button
+              onClick={() => setNoSlot(null)}
+              className="mt-4 w-full bg-[#00c19c] hover:bg-[#008a73] text-white font-bold py-2 px-4 rounded-3xl transition-colors duration-300 ease-in-out"
             >
               Close
             </button>

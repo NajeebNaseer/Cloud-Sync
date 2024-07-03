@@ -36,8 +36,6 @@ const TimeSlots = ({
   const [filteredSlots, setFilteredSlots] = useState();
 
   const filterSlotsByDate = (date) => {
-    // console.log("Formatted date for filtering:", selectedDateString);
-
     const selectedDateString = moment(date).format("DD/MM/YYYY");
     console.log("Formatted date for filtering:", selectedDateString);
     let filter = [];
@@ -46,13 +44,7 @@ const TimeSlots = ({
       const dateObject = parseISO(slot.start_time);
       const formattedDate = format(dateObject, "yyyy/MM/dd");
       isEqual(formattedDate, date);
-      const formattedDateTwo = format(dateObject, "yyyy/MM/dd");
 
-      console.log("compare these two", formattedDate, selectedDateString);
-      console.log(
-        "Is the startTime the same as anotherDate? ",
-        isEqual(formattedDate, date)
-      );
       if (isEqual(formattedDate, date)) {
         filter.push(slot);
       }
@@ -76,15 +68,6 @@ const TimeSlots = ({
     return time;
   }
 
-  console.log("selectedDate", selectedTime);
-
-  function getTime(dateString) {
-    const date = new Date(dateString);
-
-    const formattedDate = date.toString();
-
-    return formattedDate;
-  }
   return (
     <div className="space-y-4">
       <h2 className="text-center font-semibold text-xl mb-4">Select Time</h2>
@@ -106,9 +89,9 @@ const TimeSlots = ({
                 className={`p-2 text-center ${
                   selectedTime?.appointmentStart === slot?.appointmentStart &&
                   selectedTime?.appointmentEnd === slot?.appointmentEnd
-                    ? "bg-[#bfe2dc]"
+                    ? " bg-[#00c19c]"
                     : "bg-gray-200"
-                } rounded-lg transition duration-150 ease-in-out hover:bg-[#00c19c]`}
+                } rounded-lg transition duration-150 ease-in-out hover:bg-[#bfe2dc]`}
               >
                 {extractTime(slot?.appointmentStart)}-
                 {extractTime(slot?.appointmentEnd)}

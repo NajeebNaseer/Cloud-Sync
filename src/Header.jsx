@@ -2,10 +2,8 @@ import React from "react";
 import LOGO from "./LogoNew.png";
 
 function Header({ userName, userImage }) {
-  let name = userName || localStorage.getItem("name");
-
   return (
-    <div className="bg-white text-gray-800 px-4 sm:px-5 flex justify-between items-center">
+    <div className="bg-white container mx-auto text-gray-800 px-4 sm:px-5 flex justify-between items-center">
       <img src={LOGO} alt="Logo" className=" h-8  sm:h-16 w-auto" />
       <div
         title="90 Days Recheck Plan"
@@ -28,7 +26,7 @@ function Header({ userName, userImage }) {
         ) : (
           <div className="h-8 w-8 sm:h-10 sm:w-10 rounded-full bg-[#00c19c] flex items-center justify-center">
             <span className="text-lg sm:text-xl font-semibold capitalize text-white">
-              {userName[0] }
+              {userName[0]}
             </span>
           </div>
         )}
