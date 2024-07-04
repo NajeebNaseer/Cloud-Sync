@@ -6,6 +6,7 @@ import Header from "../Header";
 import Footer from "../Footer";
 import Select from "react-select";
 import ConfirmationDetails from "../ConfirmationDetails";
+import { CiLocationOn } from "react-icons/ci";
 import { slots } from "../constants/slots";
 import { stateOptions } from "../constants/statesLis";
 import Confirmation from "../components/confirmation";
@@ -13,6 +14,11 @@ import { useParams, useSearchParams } from "react-router-dom";
 import { usePaymentInputs } from "react-payment-inputs";
 import Input from "../components/Input";
 import { url } from "../constants/url";
+import {
+  formatDate,
+  formatTime,
+  getUniqueAppointmentDates
+} from "../utils/utils";
 
 const Appointment = () => {
   let [searchParams] = useSearchParams();
@@ -24,89 +30,43 @@ const Appointment = () => {
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState({});
   const [availableSlots, setAvailableSlots] = useState();
-  const [showModal, setShowModal] = useState(true);
   const [selectedState, setSelectedState] = useState(state);
-  const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [steps, setSteps] = useState(1);
   const [currentTime, setCurrentTime] = useState("");
-
-  // function getTimeZoneForState(selectedState) {
-  //   const state = stateOptions.find((state) => state.value === selectedState);
-
-  //   if (state) {
-  //     return state.timeZone;
-  //   } else {
-  //     return null;
-  //   }
-  // }
-
-  function getTimeZoneForState(selectedState) {
-    const filteredStates = stateOptions.filter(
-      (state) => state.value === selectedState
-    );
-    if (filteredStates.length > 0) {
-      return filteredStates[0].timeZone;
-    } else {
-      return null;
-    }
-  }
-
-  // useEffect(() => {
-  //   let timer = "";
-  //   if (selectedState) {
-  //     // timer = setInterval(() => {
-  //     const newDate = new Date();
-  //     const timeFormatter = new Intl.DateTimeFormat("en-US", {
-  //       timeZone: getTimeZoneForState(selectedState),
-  //       hour: "numeric",
-  //       minute: "numeric",
-  //       second: "numeric",
-  //       hour12: true
-  //     });
-  //     setCurrentTime(timeFormatter.format(newDate));
-  //     // }, 1000);
-  //   }
-
-  //   // return () => clearInterval(timer);
-  // }, [selectedState]);
-
-  console.log("currentTime", currentTime);
+  const [data, setData] = useState([]);
+  const [UID, setUID] = useState();
+  const [isLoading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [dates, setDates] = useState();
 
   useEffect(() => {
-    // console.log(
-    //   " getTimeZoneForState(selectedState)",
-    //   getTimeZoneForState(selectedState)
-    // );
+    let timer = "";
+    if (selectedState) {
+      timer = setInterval(() => {
+        const newDate = new Date();
+        const timeFormatter = new Intl.DateTimeFormat("en-US", {
+          timeZone: selectedState.timeZone,
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          hour: "numeric",
+          minute: "numeric",
+          second: "numeric",
+          hour12: true
+        });
+        setCurrentTime(timeFormatter.format(newDate));
+      }, 1000);
+    }
+
+    return () => clearInterval(timer);
+  }, [selectedState]);
+
+  useEffect(() => {
     localStorage.removeItem("name");
     localStorage.setItem("name", first_name + " " + last_name);
     return () => localStorage.removeItem("name");
   }, [last_name, first_name]);
-
-  function formatTime(date) {
-    const dateString = date.toLocaleDateString("en-US", {
-      month: "2-digit",
-      day: "2-digit",
-      year: "numeric"
-    });
-
-    const timeString = date.toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true
-    });
-
-    return `${dateString}, ${timeString}`;
-  }
-
-  function formatDate(date) {
-    const dateString = date.toLocaleDateString("en-US", {
-      month: "2-digit",
-      day: "2-digit",
-      year: "numeric"
-    });
-
-    return `${dateString}`;
-  }
 
   function filterNonOverlappingSlots(appointmentSlots) {
     appointmentSlots.sort(
@@ -132,20 +92,6 @@ const Appointment = () => {
     return nonOverlappingSlots;
   }
 
-  const getUniqueAppointmentDates = (appointmentsArray) => {
-    const dates = appointmentsArray.map(
-      (appointment) => appointment.appointmentDate
-    );
-    const uniqueDates = Array.from(new Set(dates));
-    return uniqueDates;
-  };
-
-  const [data, setData] = useState([]);
-  const [UID, setUID] = useState();
-
-  const [isLoading, setLoading] = useState(false);
-
-  const [error, setError] = useState(null);
   const fetchData = async () => {
     setLoading(true);
     setError(null);
@@ -163,12 +109,6 @@ const Appointment = () => {
           email: email,
           state: selectedState?.value
         })
-
-        // body: JSON.stringify({
-        //   first_name: first_name,
-        //   last_name: last_name,
-        //   date_of_birth: dob
-        // })
       });
 
       if (!response.ok) {
@@ -190,30 +130,13 @@ const Appointment = () => {
     }
   };
 
-  const [dates, setDates] = useState();
   const getDate = () => {
-    let date = new Date();
-
-    const options = {
-      weekday: "long", // e.g., Monday
-      year: "numeric", // e.g., 2024
-      month: "long", // e.g., July
-      day: "numeric", // e.g., 13
-      hour: "2-digit", // e.g., 02 PM
-      minute: "2-digit", // e.g., 45
-      second: "2-digit", // e.g., 30
-      hour12: true // Use 12-hour clock (AM/PM)
-    };
-
-    return date.toLocaleString("en-US", options);
+    return selectedState.timeZone + " " + currentTime;
   };
-  // var date = new Date();
 
   useEffect(() => {
     if (data?.slots) {
-      // if (slots) {
       const filteredSlots = filterNonOverlappingSlots(data?.slots);
-      // const filteredSlots = filterNonOverlappingSlots(slots);
       let res = getUniqueAppointmentDates(filteredSlots);
       setDates(res);
       setUID(data?.UID);
@@ -265,7 +188,6 @@ const Appointment = () => {
 
   const [form, setforms] = useState(false);
   const handleConfirm = () => {
-    setShowModal(false);
     fetchData();
   };
   const { meta, getCardNumberProps, getExpiryDateProps, getCVCProps } =
@@ -314,17 +236,21 @@ const Appointment = () => {
       {steps === 4 && (
         <Confirmation setSteps={setSteps} setShowConfirmation={setforms} />
       )}
-      <div className="bg-gray-100 flex justify-start">
-        <button
-          onClick={handleBack}
-          className="mx-4 w-[100px] my-4 bg-[#00c19c] hover:bg-[#008a73] text-white font-bold py-2 px-4 rounded-3xl shadow-lg transition duration-300 ease-in-out"
-        >
-          Back
-        </button>
-      </div>
+
+      {steps > 1 && steps < 5 && (
+        <div className="bg-gray-100 flex justify-start">
+          <button
+            onClick={handleBack}
+            className="mx-4 w-[100px] my-4 bg-[#00c19c] hover:bg-[#008a73] text-white font-bold py-2 px-4 rounded-3xl shadow-lg transition duration-300 ease-in-out"
+          >
+            Back
+          </button>
+        </div>
+      )}
+
       {steps === 1 && (
-        <div className="md:flex-grow flex items-center md:py-20 justify-center md:bg-gray-100">
-          <div className="max-w-4xl mx-auto w-full p-4 md:p-8 bg-white md:shadow-2xl rounded-lg flex flex-col md:flex-row justify-around md:border border-gray-200 md:space-x-4">
+        <div className="md:flex-grow md:flex items-center md:py-20 justify-center md:bg-gray-100">
+          <div className="md:max-w-4xl  md:mx-auto md:w-[80%]  md:mt-28 p-4 md:p-8 bg-white md:shadow-2xl rounded-lg flex flex-col md:flex-row justify-around md:border border-gray-200 md:space-x-4">
             <div className="flex-1 flex flex-col md:py-10 items-center justify-center space-y-4 p-4">
               <div className="space-y-4">
                 <h1 className="text-2xl md:text-4xl font-bold text-center text-gray-800">
@@ -338,7 +264,6 @@ const Appointment = () => {
                   state.
                 </h4>
               </div>
-
               <div className="w-full px-4 md:w-96">
                 <Select
                   options={stateOptions}
@@ -386,46 +311,44 @@ const Appointment = () => {
       )}
 
       {
-        <div className="md:flex-grow flex items-center justify-center bg-gray-100">
+        <div className="md:flex-grow md:flex md:pb-40 items-center justify-center bg-gray-100">
           {steps === 2 && (
-            <>
-              <div className="max-w-4xl mx-auto w-full p-4 sm:p-0 bg-white shadow-2xl rounded-lg flex flex-col justify-between border border-gray-200 space-y-4 sm:space-y-0 sm:space-x-4 h-full">
-                <div className="grid grid-cols-2">
-                  <div className="flex flex-col items-center justify-center space-y-4">
-                    <h2 className="text-lg sm:text-xl font-semibold mb-6 sm:mb-8">
-                      Select Date
-                    </h2>
-                    <CustomDatePicker
-                      dates={dates}
-                      selectedDate={selectedDate}
-                      setSelectedDate={setSelectedDate}
-                    />
-                  </div>
-                  <div className="flex flex-col space-y-4 px-4 py-8">
-                    <div className="text-center">
-                      Select a time to meet with a licensed provider
-                    </div>
-                    <TimeSlots
-                      setSelectedDate={setSelectedDate}
-                      selectedDate={selectedDate}
-                      selectedTime={selectedTime}
-                      setSelectedTime={setSelectedTime}
-                      slots={availableSlots}
-                    />
-                    <button
-                      onClick={handleConfirmBooking}
-                      className="w-full bg-[#00c19c] hover:bg-[#008a73] text-white font-bold py-2 px-4 rounded-3xl shadow-lg"
-                      disabled={isLoading}
-                    >
-                      Confirm Booking
-                    </button>
-                  </div>
+            <div className="md:max-w-4xl  md:mx-auto md:w-[80%]    sm:p-0 bg-white shadow-2xl rounded-lg flex flex-col justify-between border border-gray-200 space-y-4 sm:space-y-0 sm:space-x-4 h-full">
+              <div className="text-center text-2xl font-medium mt-5 py-4 flex items-center justify-center space-x-2">
+                Select a time to meet with a licensed provider
+              </div>
+              <div className="grid md:grid-cols-2 ">
+                <div className="flex flex-col items-center justify-center  pb-8">
+                  <CustomDatePicker
+                    dates={dates}
+                    selectedDate={selectedDate}
+                    setSelectedDate={setSelectedDate}
+                  />
                 </div>
-                <div className="text-center text-lg font-medium py-4">
-                  {getDate()}
+                <div className="flex flex-col space-y-4 px-4 py-20">
+                  <TimeSlots
+                    setSelectedDate={setSelectedDate}
+                    selectedDate={selectedDate}
+                    selectedTime={selectedTime}
+                    setSelectedTime={setSelectedTime}
+                    slots={availableSlots}
+                  />
+                  <button
+                    onClick={handleConfirmBooking}
+                    className="w-full bg-[#00c19c] hover:bg-[#008a73] text-white font-bold py-2  rounded-3xl shadow-lg"
+                    disabled={isLoading}
+                  >
+                    Confirm Booking
+                  </button>
                 </div>
               </div>
-            </>
+              <div className="text-center text-lg font-medium py-4 flex items-center justify-center space-x-2">
+                <span className="hidden md:block">
+                  <CiLocationOn />
+                </span>
+                <span>{getDate()}</span>
+              </div>
+            </div>
           )}
           {steps === 3 && (
             <ConfirmationDetails
@@ -435,16 +358,16 @@ const Appointment = () => {
             />
           )}
           {steps === 5 && (
-            <div className="flex flex-col items-center justify-center min-h-screen p-4">
+            <div className="md:sflex md:flex-col md:items-center justify-center min-h-screen p-4">
               <form
                 onSubmit={handleSubmit}
-                className="w-full max-w-4xl p-4 md:p-8 bg-white rounded-lg border border-gray-200 md:space-x-4"
+                className="md:max-w-4xl  md:mx-auto md:w-[80%] p-4 md:p-8 bg-white rounded-lg border border-gray-200 md:space-x-4"
               >
                 <h2 className="text-xl md:text-2xl font-semibold text-center mb-6 md:mb-8">
                   Add Payment Method
                 </h2>
 
-                <div className="mb-4">
+                <div className="md:mb-4">
                   <div>
                     <Input
                       {...getCardNumberProps({ onChange: handleChange })}
