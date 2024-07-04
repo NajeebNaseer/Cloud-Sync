@@ -130,9 +130,16 @@ const Appointment = () => {
     }
   };
 
-  const getDate = () => {
-    return selectedState.timeZone + " " + currentTime;
-  };
+  const [address, setAddress] = useState();
+
+
+  useEffect(() => {
+    setAddress(selectedState?.timeZone + " " + currentTime);
+  }, [selectedState, currentTime]);
+
+  // const getDate = () => {
+  //   return selectedState.timeZone + " " + currentTime;
+  // };
 
   useEffect(() => {
     if (data?.slots) {
@@ -346,7 +353,7 @@ const Appointment = () => {
                 <span className="hidden md:block">
                   <CiLocationOn />
                 </span>
-                <span>{getDate()}</span>
+                <span>{address}</span>
               </div>
             </div>
           )}
