@@ -191,7 +191,7 @@ const Appointment = () => {
           if (parsedResult?.appointment_id) {
             setAppointmentID(parsedResult.appointment_id);
             setData(parsedResult);
-            setSteps(3);
+            setSteps(5);
           } else {
             setERRMSG(
               "This Appointment is already Booked Please Select another Slot"
