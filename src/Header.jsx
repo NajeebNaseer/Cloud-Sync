@@ -3,8 +3,8 @@ import LOGO from "./LogoNew.png";
 
 function Header({ userName, userImage }) {
   return (
-    <div className="bg-white container mx-auto text-gray-800 px-4 sm:px-5 flex justify-between items-center">
-      <img src={LOGO} alt="Logo" className=" h-8  sm:h-16 w-auto" />
+    <div className="bg-white h-40 container mx-auto text-gray-800 px-4 sm:px-5 flex justify-between items-center">
+      <img src={LOGO} alt="Logo" className=" h-16 w-auto" />
       <div
         title="90 Days Recheck Plan"
         className="hidden md:block text-xl sm:text-2xl md:text-4xl text-gray-800 font-bold truncate max-w-[40%]"
@@ -13,7 +13,7 @@ function Header({ userName, userImage }) {
       </div>
 
       <div className="flex items-center space-x-3">
-        <h1 className="text-base sm:text-lg capitalize font-bold truncate max-w-[100px] sm:max-w-none">
+        <h1 className="text-lg capitalize font-bold truncate max-w-[100px] sm:max-w-none">
           {userName}
         </h1>
 

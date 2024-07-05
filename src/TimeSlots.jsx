@@ -83,17 +83,17 @@ const TimeSlots = ({
             <span className="text-center text-lg text-red-600">{errMSG}</span>
           </div>
           <div
-            className={`overflow-y-auto scrollbar-thin rounded-lg scrollbar-thumb-[#00c19c] scrollbar-track-gray-100 ${
+            className={`relative  rounded-lg   ${
               slotError ? "border-red-500 border-4" : ""
             }`}
             style={{ height: "250px" }}
           >
-            <div className="grid sm:grid-cols-2 gap-2 p-2 ">
+            <div className="grid sm:grid-cols-2 gap-2 p-2 h-60 overflow-y-auto scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-[#00c19c]">
               {filteredSlots?.map((slot, index) => (
                 <button
                   key={index}
                   onClick={() => handleSelect(slot)}
-                  className={`p-2 text-center ${
+                  className={`p-2 h-16 text-center ${
                     selectedTime?.appointmentStart === slot?.appointmentStart &&
                     selectedTime?.appointmentEnd === slot?.appointmentEnd
                       ? "bg-[#00c19c]"

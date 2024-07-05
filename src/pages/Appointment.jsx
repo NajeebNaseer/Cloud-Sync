@@ -155,6 +155,7 @@ const Appointment = () => {
   }, [data]);
 
   const [slotError, setSlotError] = useState(false);
+  const [appointmentID, setAppointmentID] = useState();
 
   const handleConfirmBooking = async () => {
     if (selectedTime?.start_time) {
@@ -186,8 +187,17 @@ const Appointment = () => {
             throw new Error("Network response was not ok");
           }
           const result = await response.json();
-          setData(result);
-          setSteps(3);
+          const parsedResult = JSON.parse(result);
+          if (parsedResult?.appointment_id) {
+            setAppointmentID(parsedResult.appointment_id);
+            setData(parsedResult);
+            setSteps(3);
+          } else {
+            setERRMSG(
+              "This Appointment is already Booked Please Select another Slot"
+            );
+            setSlotError(true);
+          }
         } catch (error) {
           setError(error.message);
         } finally {
@@ -234,49 +244,42 @@ const Appointment = () => {
     if (validateAndFormatExpiryDate(expiryDate)) {
       const [month, year] = expiryDate.split("/").map(Number);
       let formatedDate = `${month.toString().padStart(2, "0")}-${year}`;
+      setError(null);
+      try {
+        const response = await fetch(`${url}api/v1/payment/process_payment/`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+
+          body: JSON.stringify({
+            cardNumber: cardNumber,
+            expirationDate: formatedDate,
+            appointment_id: appointmentID,
+            cardCode: csv,
+            product_id: 1
+          })
+
+          // body: JSON.stringify({
+          //   cardNumber: "4111111111111111",
+          //   expirationDate: "2035-12",
+          //   cardCode: "123",
+          //   appointment_id: appointmentID,
+          //   product_id: 1
+          // })
+        });
+
+        console.log("response", response);
+      } catch (error) {
+        console.log("error.parse", error);
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
       setERRMSG("");
     } else {
       setERRMSG("Please check and enter a valid expiry date.");
     }
-
-    // console.log("csv", csv);
-    // console.log(
-    //   "expiryDate",
-    //   expiryDate.split("/")[0] + "-" + expiryDate.split("/")[1]
-    // );
-    // setError(null);
-    // try {
-    //   const response = await fetch(`${url}api/v1/payment/process_payment/`, {
-    //     method: "POST",
-    //     headers: {
-    //       "Content-Type": "application/json"
-    //     },
-
-    //     body: JSON.stringify({
-    //       cardNumber: cardNumber,
-    //       expirationDate: "2035-12",
-    //       cardCode: csv,
-    //       product_id: 1
-    //     })
-    //   });
-
-    //   if (!response.ok) {
-    //     throw new Error(`Oops! Something went wrong, Please contact support`);
-    //   }
-
-    //   const result = await response.json();
-    //   setData(result);
-    //   if (result?.slots.length > 0) {
-    //     setSteps(2);
-    //   } else {
-    //     setNoSlot(true);
-    //   }
-    // } catch (error) {
-    //   console.log("error.parse", error);
-    //   setError(error.message);
-    // } finally {
-    // setLoading(false);
-    // }
   };
 
   const handleChange = (e) => {
@@ -298,7 +301,7 @@ const Appointment = () => {
   const handleBack = () => {
     setERRMSG("");
     setSelectedTime({});
-    setSteps((prev) => (prev === 5 ? prev - 2 : prev - 1));
+    setSteps((prev) => (prev === 5 ? prev - 3 : prev - 1));
   };
   const handleCardNumberChange = (e) => {
     setCardNumber(e.target.value);
@@ -335,7 +338,7 @@ const Appointment = () => {
       )}
 
       {steps === 1 && (
-        <div className="md:flex-grow md:flex items-center md:py-20 justify-center md:bg-gray-100">
+        <div className="flex-grow flex items-center md:py-20 justify-center md:bg-gray-100">
           <div className="md:max-w-4xl  md:mx-auto md:w-[80%]  md:mt-28 p-4 md:p-8 bg-white md:shadow-2xl rounded-lg flex flex-col md:flex-row justify-around md:border border-gray-200 md:space-x-4">
             <div className="flex-1 flex flex-col md:py-10 items-center justify-center space-y-4 p-4">
               <div className="space-y-4">
@@ -397,14 +400,14 @@ const Appointment = () => {
       )}
 
       {
-        <div className="md:flex-grow md:flex md:pb-40 items-center  justify-center bg-gray-100">
+        <div className="flex-grow flex md:pb-40 items-center  justify-center bg-gray-100">
           {steps === 2 && (
-            <div className="md:max-w-4xl  md:mx-auto md:w-[80%]    sm:p-0 bg-white shadow-2xl rounded-lg flex flex-col justify-between border border-gray-200 space-y-4 sm:space-y-0 sm:space-x-4 h-full">
+            <div className="md:max-w-4xl md:mx-auto md:w-[80%] bg-white shadow-2xl rounded-lg flex flex-col justify-between border border-gray-200 space-y-4 sm:space-y-0 sm:space-x-4 h-full">
               <div className="text-center text-2xl font-medium mt-5 py-4 flex items-center justify-center space-x-2">
                 Select a time to meet with a licensed provider
               </div>
-              <div className="grid lg:grid-cols-2 ">
-                <div className="flex flex-col items-center justify-center  pb-8">
+              <div className="grid lg:grid-cols-2">
+                <div className="flex flex-col items-center justify-center pb-8">
                   <CustomDatePicker
                     dates={dates}
                     selectedDate={selectedDate}
@@ -413,26 +416,26 @@ const Appointment = () => {
                 </div>
                 <div className="flex flex-col space-y-4 px-4 py-20">
                   <TimeSlots
-                    slotError={slotError}
-                    setSelectedDate={setSelectedDate}
+                    slots={availableSlots}
                     selectedDate={selectedDate}
                     selectedTime={selectedTime}
-                    setSlotError={setSlotError}
+                    setSelectedDate={setSelectedDate}
                     setSelectedTime={setSelectedTime}
+                    setSlotError={setSlotError}
+                    slotError={slotError}
                     setERRMSG={setERRMSG}
                     errMSG={errMSG}
-                    slots={availableSlots}
                   />
                   <button
                     onClick={handleConfirmBooking}
-                    className="w-full bg-[#00c19c] hover:bg-[#008a73] text-white font-bold py-2  rounded-3xl shadow-lg"
+                    className="w-full bg-[#00c19c] hover:bg-[#008a73] text-white font-bold py-2 rounded-3xl shadow-lg"
                     disabled={isLoading}
                   >
                     Confirm Booking
                   </button>
                 </div>
               </div>
-              <div className="text-center text-lg font-medium py-4 flex items-center justify-center space-x-2">
+              <div className="text-center text-lg font-medium py-4 px-20 flex items-center justify-center space-x-2">
                 <span className="hidden md:block">
                   <CiLocationOn />
                 </span>
@@ -440,13 +443,13 @@ const Appointment = () => {
               </div>
             </div>
           )}
-          {steps === 3 && (
+          {/* {steps === 3 && (
             <ConfirmationDetails
               setSteps={setSteps}
               setform={setforms}
               user={{ email: "email@example.com", phone: "+1234567890" }}
             />
-          )}
+          )} */}
           {steps === 5 && (
             <div className="md:sflex md:flex-col md:items-center md:py-44 justify-center min-h-screen p-4">
               <form
@@ -485,7 +488,7 @@ const Appointment = () => {
                       />
                     </div>
                     <div className="flex justify-center">
-                      <span className="text-center text-lg text-red-600 px-2">
+                      <span className="text-center  text-red-600 px-2">
                         {errMSG}
                       </span>
                     </div>
