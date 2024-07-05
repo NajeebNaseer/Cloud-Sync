@@ -38,8 +38,6 @@ const TimeSlots = ({
     return dateTimeString;
   }
 
-  console.log("selectedTime", selectedTime);
-
   return (
     <div className="space-y-4">
       <h2 className="text-center font-semibold text-xl mb-4">Select Time</h2>

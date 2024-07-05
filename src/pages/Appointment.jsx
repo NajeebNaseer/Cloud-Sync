@@ -252,7 +252,7 @@ const Appointment = () => {
     e.preventDefault();
     if (validateAndFormatExpiryDate(expiryDate)) {
       const [month, year] = expiryDate.split("/").map(Number);
-      let formatedDate = `${month.toString().padStart(2, "0")}-${year}`;
+      let formatedDate = `${month.toString().padStart(2, "0")}-20${year}`;
       setError(null);
       try {
         const response = await fetch(`${url}api/v1/payment/process_payment/`, {
@@ -262,7 +262,7 @@ const Appointment = () => {
           },
 
           body: JSON.stringify({
-            cardNumber: cardNumber,
+            cardNumber: cardNumber.replace(/\s+/g, ""),
             expirationDate: formatedDate,
             appointment_id: appointmentID,
             cardCode: csv,
@@ -286,9 +286,7 @@ const Appointment = () => {
         if (response.ok) {
           setSteps(6);
         }
-        console.log("response", response);
       } catch (error) {
-        alert(error);
         setError(error.message);
       } finally {
         setLoading(false);
@@ -472,7 +470,7 @@ const Appointment = () => {
                   className="md:max-w-4xl md:mx-auto md:w-[80%] p-4 md:p-8 bg-white rounded-lg border border-gray-200 md:space-x-4"
                 >
                   <h2 className="text-xl md:text-2xl font-semibold text-center mb-6 md:mb-8">
-                    Add Payment Method
+                    Add Payment Details
                   </h2>
 
                   <div className="md:mb-4">
@@ -521,18 +519,6 @@ const Appointment = () => {
                     </div>
                   </div>
 
-                  <div className="text-center text-sm text-gray-600 mt-4">
-                    Secured by{" "}
-                    <a
-                      href="https://stripe.com"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[#00c19c] hover:text-[#008a73]"
-                    >
-                      authorize.net
-                    </a>
-                  </div>
-
                   {srvrErrMSG && (
                     <div className="flex justify-center">
                       <span className="text-center text-red-600 px-2">
@@ -547,6 +533,17 @@ const Appointment = () => {
                   >
                     Confirm Appointment
                   </button>
+                  <div className="text-end text-sm text-gray-600 mt-4">
+                    Secured by{" "}
+                    <a
+                      href="https://www.authorize.net/"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#00c19c] hover:text-[#008a73]"
+                    >
+                      authorize.net
+                    </a>
+                  </div>
                 </form>
               </div>
             )}
