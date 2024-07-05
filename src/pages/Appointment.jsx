@@ -44,6 +44,7 @@ const Appointment = () => {
   const [expiryDate, setExpiryDate] = useState();
   const [cardNumber, setCardNumber] = useState();
   const [errMSG, setERRMSG] = useState("");
+  const [srvrErrMSG, setSrvrErrMSG] = useState("");
 
   useEffect(() => {
     let timer = "";
@@ -169,40 +170,47 @@ const Appointment = () => {
         start_time: selectedTime?.start_time
       };
 
-      if (true) {
-        setLoading(true);
-        try {
-          const response = await fetch(
-            `${url}api/v1/prognosis/set_appointment/`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json"
-              },
+      setLoading(true);
+      try {
+        const response = await fetch(
+          `${url}api/v1/prognosis/set_appointment/`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
 
-              body: JSON.stringify(body)
-            }
-          );
-          if (!response.ok) {
-            throw new Error("Network response was not ok");
+            body: JSON.stringify(body)
           }
-          const result = await response.json();
-          const parsedResult = JSON.parse(result);
-          if (parsedResult?.appointment_id) {
-            setAppointmentID(parsedResult.appointment_id);
-            setData(parsedResult);
-            setSteps(5);
-          } else {
-            setERRMSG(
-              "This Appointment is already Booked Please Select another Slot"
-            );
-            setSlotError(true);
-          }
-        } catch (error) {
-          setError(error.message);
-        } finally {
-          setLoading(false);
+        );
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
         }
+        const result = await response.json();
+
+        if (result?.msg) {
+          setERRMSG(
+            "This Appointment is already Booked Please Select another Slot"
+          );
+          setSlotError(true);
+        }
+
+        const parsedResult = JSON.parse(result);
+        if (parsedResult?.appointment_id) {
+          setAppointmentID(parsedResult.appointment_id);
+          setData(parsedResult);
+          setSteps(5);
+        } else {
+          setERRMSG(
+            "This Appointment is already Booked Please Select another Slot"
+          );
+          setSlotError(true);
+        }
+      } catch (error) {
+        console.log("error", error);
+        setError(error.msg);
+      } finally {
+        setLoading(false);
       }
     } else {
       setERRMSG("Please Select a slot to proceed");
@@ -269,9 +277,18 @@ const Appointment = () => {
           // })
         });
 
+        if (!response.ok) {
+          alert("not okay");
+          setSrvrErrMSG("Payment Was declined Please check details");
+        } else {
+          setSrvrErrMSG("");
+        }
+        if (response.ok) {
+          setSteps(6);
+        }
         console.log("response", response);
       } catch (error) {
-        console.log("error.parse", error);
+        alert(error);
         setError(error.message);
       } finally {
         setLoading(false);
@@ -316,7 +333,7 @@ const Appointment = () => {
       <Header userName={first_name + " " + last_name} userImage="" />
       <div
         title="90 Days Recheck Plan"
-        className="md:hidden block text-xl sm:text-2xl md:text-4xl text-center text-gray-800 font-bold  "
+        className="md:hidden block text-xl bg-gray-100 sm:text-2xl md:text-4xl text-center text-gray-800 font-bold  "
       >
         90 Days Check Plan
       </div>
@@ -325,7 +342,7 @@ const Appointment = () => {
       )}
 
       {steps > 1 && steps <= 5 && (
-        <div className="grid md:grid-cols-2 md:bg-gray-100 ">
+        <div className="grid md:grid-cols-2 bg-gray-100 ">
           <div className=" md:bg-gray-100  w-full flex justify-start md:justify-center">
             <button
               onClick={handleBack}
@@ -443,15 +460,15 @@ const Appointment = () => {
               </div>
             </div>
           )}
-          {/* {steps === 3 && (
+          {steps === 6 && (
             <ConfirmationDetails
               setSteps={setSteps}
               setform={setforms}
               user={{ email: "email@example.com", phone: "+1234567890" }}
             />
-          )} */}
+          )}
           {steps === 5 && (
-            <div className="md:sflex md:flex-col md:items-center md:py-44 justify-center min-h-screen p-4">
+            <div className="flex flex-col items-center md:py-44 justify-center p-4">
               <form
                 onSubmit={handleSubmit}
                 className="md:max-w-4xl  md:mx-auto md:w-[80%]  p-4 md:p-8 bg-white rounded-lg border border-gray-200 md:space-x-4"
@@ -460,7 +477,7 @@ const Appointment = () => {
                   Add Payment Method
                 </h2>
 
-                <div className="md:mb-4">
+                <div className="md:mb-4  ">
                   <div>
                     <Input
                       {...getCardNumberProps({
@@ -474,8 +491,8 @@ const Appointment = () => {
                     />
                   </div>
 
-                  <div className="flex flex-wrap -mx-2">
-                    <div className="w-full md:w-1/2 px-2 mb-2 md:mb-0">
+                  <div className="flex flex-wrap w-full ">
+                    <div className="w-full  mb-2 md:mb-0">
                       <Input
                         {...getExpiryDateProps({
                           onChange: handleCardExpiryChange
@@ -492,7 +509,7 @@ const Appointment = () => {
                         {errMSG}
                       </span>
                     </div>
-                    <div className="w-full md:w-1/2 px-2">
+                    <div className="w-full  ">
                       <Input
                         {...getCVCProps({ onChange: handleChange })}
                         id="cardCVC"
@@ -504,7 +521,11 @@ const Appointment = () => {
                     </div>
                   </div>
                 </div>
-
+                <div className="flex justify-center">
+                  <span className="text-center  text-red-600 px-2">
+                    {srvrErrMSG}
+                  </span>
+                </div>
                 <button
                   onClick={() => setSteps(5)}
                   className="mt-4 w-full bg-[#00c19c] hover:bg-[#008a73] text-white font-bold py-2 px-4 rounded-3xl transition-colors duration-300 ease-in-out"

@@ -23,7 +23,7 @@ const ConfirmationDetails = ({ user, setform, setSteps }) => {
             <FaCheckCircle className="mr-2" />
             Step 3: Confirm Details
           </li>
-          <li className="flex items-center text-red-600 mb-2">
+          <li className="flex items-center text-[#00c19c] mb-2">
             <FaTimesCircle className="mr-2" />
             Step 4: Complete Payment
           </li>
@@ -31,7 +31,7 @@ const ConfirmationDetails = ({ user, setform, setSteps }) => {
         <div className="flex items-center justify-center">
           <button
             // onClick={() => setform(true)}
-            onClick={() => setSteps(4)}
+            // onClick={() => setSteps(1)}
             className="mt-4 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-10 rounded-lg shadow-lg transition duration-300"
           >
             Complete Payment
