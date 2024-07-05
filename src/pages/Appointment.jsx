@@ -229,15 +229,14 @@ const Appointment = () => {
   };
 
   const handleSubmit = async (e) => {
-    setLoading(true);
+    setLoading(false);
     e.preventDefault();
     if (validateAndFormatExpiryDate(expiryDate)) {
       const [month, year] = expiryDate.split("/").map(Number);
       let formatedDate = `${month.toString().padStart(2, "0")}-${year}`;
+      setERRMSG("");
     } else {
-      setERRMSG(
-        "The expiry date is in the past. Please check and enter a valid expiry date."
-      );
+      setERRMSG("Please check and enter a valid expiry date.");
     }
 
     // console.log("csv", csv);
@@ -468,7 +467,7 @@ const Appointment = () => {
                       required
                       label="Card number"
                       value={form.cardNumber}
-                      className="w-full p-2 m-2 rounded-lg border border-gray-300"
+                      className="w-full p-2  rounded-lg border border-gray-300"
                     />
                   </div>
 
@@ -484,6 +483,11 @@ const Appointment = () => {
                         value={form.cardExpDate}
                         className="w-full p-2 rounded-lg border border-gray-300"
                       />
+                    </div>
+                    <div className="flex justify-center">
+                      <span className="text-center text-lg text-red-600 px-2">
+                        {errMSG}
+                      </span>
                     </div>
                     <div className="w-full md:w-1/2 px-2">
                       <Input

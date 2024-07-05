@@ -1,6 +1,4 @@
 import React, { useEffect, useMemo, useState } from "react";
-import dayjs from "dayjs";
-import moment from "moment";
 
 import { parseISO, isEqual, format } from "date-fns";
 
@@ -81,7 +79,9 @@ const TimeSlots = ({
         <SkeletonLoader />
       ) : (
         <>
-          <span className="text-center text-red-600">{errMSG}</span>
+          <div className="flex justify-center">
+            <span className="text-center text-lg text-red-600">{errMSG}</span>
+          </div>
           <div
             className={`overflow-y-auto scrollbar-thin rounded-lg scrollbar-thumb-[#00c19c] scrollbar-track-gray-100 ${
               slotError ? "border-red-500 border-4" : ""
