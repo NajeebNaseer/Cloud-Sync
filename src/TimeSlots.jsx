@@ -1,27 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
-
+import React, { useEffect, useState, useCallback } from "react";
 import { parseISO, isEqual, format } from "date-fns";
-
-const SkeletonLoader = () => {
-  return (
-    <div className="grid grid-cols-3 gap-3 p-3">
-      {Array.from({ length: 6 }).map((_, index) => (
-        <div key={index} className="h-10 bg-gray-300 rounded animate-pulse">
-          <div className="w-full h-full bg-gray-200 rounded-lg overflow-hidden">
-            <div
-              className="w-full h-full bg-gray-300 rounded animate-pulse"
-              style={{
-                backgroundImage:
-                  "linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)",
-                animation: "skeleton 1.5s infinite linear"
-              }}
-            ></div>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-};
 
 const TimeSlots = ({
   errMSG,
@@ -29,84 +7,69 @@ const TimeSlots = ({
   setSlotError,
   slotError,
   selectedTime,
-  selectedDate,
   setSelectedTime,
-  slots
+  slots,
+  selectedDate
 }) => {
-  const [filteredSlots, setFilteredSlots] = useState();
+  const [filteredSlots, setFilteredSlots] = useState([]);
 
-  const filterSlotsByDate = (date) => {
-    let filter = [];
-
-    slots.forEach((slot) => {
-      const dateObject = parseISO(slot.start_time);
-      const formattedDate = format(dateObject, "yyyy/MM/dd");
-      isEqual(formattedDate, date);
-
-      if (isEqual(formattedDate, date)) {
-        filter.push(slot);
-      }
-    });
-
-    setFilteredSlots(filter);
-  };
   useEffect(() => {
-    if (selectedDate && slots.length > 0) {
-      filterSlotsByDate(selectedDate);
+    if (selectedDate && slots?.length > 0) {
+      const newFilteredSlots = slots?.filter((slot) => {
+        const dateObject = parseISO(slot?.start_time);
+        return isEqual(format(dateObject, "yyyy/MM/dd"), selectedDate);
+      });
+      setFilteredSlots(newFilteredSlots);
     }
   }, [selectedDate, slots]);
 
+  const handleSelect = useCallback(
+    (slot) => {
+      setERRMSG("");
+      setSelectedTime(slot);
+      setSlotError(false);
+    },
+    [setERRMSG, setSelectedTime, setSlotError]
+  );
+
   function extractTime(dateTimeString) {
-    const parts = dateTimeString.split(",");
-
-    const time = parts[1].trim();
-
-    return time;
+    console.log("dateTimeString", dateTimeString);
+    // const time = dateTimeString.split("T")[1].slice(0, 5);
+    return dateTimeString;
   }
-  const handleSelect = (slot) => {
-    setERRMSG("");
-    setSelectedTime(slot);
-    setSlotError(false);
-  };
+
+  console.log("selectedTime", selectedTime);
 
   return (
     <div className="space-y-4">
       <h2 className="text-center font-semibold text-xl mb-4">Select Time</h2>
-
       <div className="text-center">{selectedTime?.appointmentStart}</div>
-
-      {false ? (
-        <SkeletonLoader />
-      ) : (
-        <>
-          <div className="flex justify-center">
-            <span className="text-center text-lg text-red-600">{errMSG}</span>
-          </div>
-          <div
-            className={`relative  rounded-lg   ${
-              slotError ? "border-red-500 border-4" : ""
-            }`}
-            style={{ height: "250px" }}
-          >
-            <div className="grid sm:grid-cols-2 gap-2 p-2 h-60 overflow-y-auto scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-[#00c19c]">
-              {filteredSlots?.map((slot, index) => (
-                <button
-                  key={index}
-                  onClick={() => handleSelect(slot)}
-                  className={`p-2 h-16 text-center ${
-                    selectedTime?.appointmentStart === slot?.appointmentStart &&
-                    selectedTime?.appointmentEnd === slot?.appointmentEnd
-                      ? "bg-[#00c19c]"
-                      : "bg-gray-200"
-                  } rounded-lg transition duration-150 ease-in-out hover:bg-[#bfe2dc]`}
-                >
-                  {extractTime(slot?.appointmentStart)}-
-                  {extractTime(slot?.appointmentEnd)}
-                </button>
-              ))}
-            </div>
-          </div>
-        </>
+      <div
+        className={`relative rounded-lg ${
+          slotError ? "border-red-500 border-4" : ""
+        }`}
+        style={{ height: "250px" }}
+      >
+        <div className="grid sm:grid-cols-2 gap-2 p-2 h-80 md:h-60 overflow-y-auto scrollbar-thin scrollbar-track-gray-100 scrollbar-thumb-[#00c19c]">
+          {filteredSlots.map((slot, index) => (
+            <button
+              key={index}
+              onTouchStart={() => handleSelect(slot)}
+              onClick={() => handleSelect(slot)}
+              className={`p-2 h-12 text-center ${
+                selectedTime.start_time === slot.start_time
+                  ? "bg-[#00c19c]"
+                  : "bg-gray-200"
+              } rounded-lg hover:bg-[#bfe2dc] transition-colors duration-300 ease-in-out`}
+            >
+              {slot.appointmentStart.split(",")[1]} -{" "}
+              {slot.appointmentEnd.split(",")[1]}
+            </button>
+          ))}
+        </div>
+      </div>
+      {errMSG && (
+        <div className="text-center text-lg text-red-600">{errMSG}</div>
       )}
     </div>
   );

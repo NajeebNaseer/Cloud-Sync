@@ -3,7 +3,7 @@ import LOGO from "./LogoNew.png";
 
 function Header({ userName, userImage }) {
   return (
-    <div className="bg-white h-40 container mx-auto text-gray-800 px-4 sm:px-5 flex justify-between items-center">
+    <div className="bg-white h-20 container mx-auto text-gray-800 px-4 sm:px-5 flex justify-between items-center">
       <img src={LOGO} alt="Logo" className=" h-16 w-auto" />
       <div
         title="90 Days Recheck Plan"

@@ -19,6 +19,7 @@ import {
   formatTime,
   getUniqueAppointmentDates
 } from "../utils/utils";
+import { IoIosArrowBack } from "react-icons/io";
 
 const Appointment = () => {
   let [searchParams] = useSearchParams();
@@ -278,7 +279,6 @@ const Appointment = () => {
         });
 
         if (!response.ok) {
-          alert("not okay");
           setSrvrErrMSG("Payment Was declined Please check details");
         } else {
           setSrvrErrMSG("");
@@ -333,7 +333,7 @@ const Appointment = () => {
       <Header userName={first_name + " " + last_name} userImage="" />
       <div
         title="90 Days Recheck Plan"
-        className="md:hidden block text-xl bg-gray-100 sm:text-2xl md:text-4xl text-center text-gray-800 font-bold  "
+        className="md:hidden py-10 block text-xl bg-gray-100 sm:text-2xl md:text-4xl text-center text-gray-800 font-bold  "
       >
         90 Days Check Plan
       </div>
@@ -341,22 +341,9 @@ const Appointment = () => {
         <Confirmation setSteps={setSteps} setShowConfirmation={setforms} />
       )}
 
-      {steps > 1 && steps <= 5 && (
-        <div className="grid md:grid-cols-2 bg-gray-100 ">
-          <div className=" md:bg-gray-100  w-full flex justify-start md:justify-center">
-            <button
-              onClick={handleBack}
-              className="mx-4 w-24 my-4 bg-[#00c19c] hover:bg-[#008a73] text-white font-bold py-2 px-4 rounded-3xl shadow-lg transition duration-300 ease-in-out"
-            >
-              Back
-            </button>
-          </div>
-        </div>
-      )}
-
-      {steps === 1 && (
-        <div className="flex-grow flex items-center md:py-20 justify-center md:bg-gray-100">
-          <div className="md:max-w-4xl  md:mx-auto md:w-[80%]  md:mt-28 p-4 md:p-8 bg-white md:shadow-2xl rounded-lg flex flex-col md:flex-row justify-around md:border border-gray-200 md:space-x-4">
+      {steps === 1 ? (
+        <div className="flex-grow flex items-center  justify-center md:bg-gray-100">
+          <div className="md:max-w-4xl  md:mx-auto md:w-[80%]   p-4 md:p-8 bg-white md:shadow-2xl rounded-lg flex flex-col md:flex-row justify-around md:border border-gray-200 md:space-x-4">
             <div className="flex-1 flex flex-col md:py-10 items-center justify-center space-y-4 p-4">
               <div className="space-y-4">
                 <h1 className="text-2xl md:text-4xl font-bold text-center text-gray-800">
@@ -414,129 +401,158 @@ const Appointment = () => {
             </div>
           </div>
         </div>
-      )}
-
-      {
-        <div className="flex-grow flex md:pb-40 items-center  justify-center bg-gray-100">
-          {steps === 2 && (
-            <div className="md:max-w-4xl md:mx-auto md:w-[80%] bg-white shadow-2xl rounded-lg flex flex-col justify-between border border-gray-200 space-y-4 sm:space-y-0 sm:space-x-4 h-full">
-              <div className="text-center text-2xl font-medium mt-5 py-4 flex items-center justify-center space-x-2">
-                Select a time to meet with a licensed provider
+      ) : (
+        <div className="flex-grow flex-col md:pb-40 items-center justify-center bg-gray-100">
+          <div className="md:max-w-4xl md:mx-auto bg-white shadow-2xl rounded-lg border border-gray-200 p-4 md:p-8 mt-4">
+            {steps > 1 && steps <= 5 && (
+              <div className="flex justify-start w-full">
+                <button
+                  onClick={handleBack}
+                  className="bg-[#00c19c] hover:bg-[#008a73] text-white font-bold py-2 px-4 rounded-3xl shadow-lg transition duration-300 ease-in-out flex items-center"
+                >
+                  <IoIosArrowBack className="mr-2" />
+                  Back
+                </button>
               </div>
-              <div className="grid lg:grid-cols-2">
-                <div className="flex flex-col items-center justify-center pb-8">
-                  <CustomDatePicker
-                    dates={dates}
-                    selectedDate={selectedDate}
-                    setSelectedDate={setSelectedDate}
-                  />
+            )}
+            {steps === 2 && (
+              <>
+                {/* className="md:max-w-4xl md:mx-auto md:w-[80%] bg-white shadow-2xl rounded-lg flex flex-col justify-between border border-gray-200 space-y-4 sm:space-y-0 sm:space-x-4 h-full"> */}
+                <div className="text-center text-2xl font-medium  mt-10 sm:mt-0 flex items-center justify-center space-x-2">
+                  Select a time to meet with a licensed provider
                 </div>
-                <div className="flex flex-col space-y-4 px-4 py-20">
-                  <TimeSlots
-                    slots={availableSlots}
-                    selectedDate={selectedDate}
-                    selectedTime={selectedTime}
-                    setSelectedDate={setSelectedDate}
-                    setSelectedTime={setSelectedTime}
-                    setSlotError={setSlotError}
-                    slotError={slotError}
-                    setERRMSG={setERRMSG}
-                    errMSG={errMSG}
-                  />
-                  <button
-                    onClick={handleConfirmBooking}
-                    className="w-full bg-[#00c19c] hover:bg-[#008a73] text-white font-bold py-2 rounded-3xl shadow-lg"
-                    disabled={isLoading}
-                  >
-                    Confirm Booking
-                  </button>
-                </div>
-              </div>
-              <div className="text-center text-lg font-medium py-4 px-20 flex items-center justify-center space-x-2">
-                <span className="hidden md:block">
-                  <CiLocationOn />
-                </span>
-                <span>{address}</span>
-              </div>
-            </div>
-          )}
-          {steps === 6 && (
-            <ConfirmationDetails
-              setSteps={setSteps}
-              setform={setforms}
-              user={{ email: "email@example.com", phone: "+1234567890" }}
-            />
-          )}
-          {steps === 5 && (
-            <div className="flex flex-col items-center md:py-44 justify-center p-4">
-              <form
-                onSubmit={handleSubmit}
-                className="md:max-w-4xl  md:mx-auto md:w-[80%]  p-4 md:p-8 bg-white rounded-lg border border-gray-200 md:space-x-4"
-              >
-                <h2 className="text-xl md:text-2xl font-semibold text-center mb-6 md:mb-8">
-                  Add Payment Method
-                </h2>
-
-                <div className="md:mb-4  ">
-                  <div>
-                    <Input
-                      {...getCardNumberProps({
-                        onChange: handleCardNumberChange
-                      })}
-                      id="cardNumber"
-                      required
-                      label="Card number"
-                      value={form.cardNumber}
-                      className="w-full p-2  rounded-lg border border-gray-300"
+                <div className="grid lg:grid-cols-2">
+                  <div className="flex flex-col items-center justify-center pb-14">
+                    <CustomDatePicker
+                      dates={dates}
+                      selectedDate={selectedDate}
+                      setSelectedDate={setSelectedDate}
                     />
                   </div>
-
-                  <div className="flex flex-wrap w-full ">
-                    <div className="w-full  mb-2 md:mb-0">
-                      <Input
-                        {...getExpiryDateProps({
-                          onChange: handleCardExpiryChange
-                        })}
-                        id="cardExpDate"
-                        required
-                        label="Exp. Date"
-                        value={form.cardExpDate}
-                        className="w-full p-2 rounded-lg border border-gray-300"
-                      />
-                    </div>
-                    <div className="flex justify-center">
-                      <span className="text-center  text-red-600 px-2">
-                        {errMSG}
-                      </span>
-                    </div>
-                    <div className="w-full  ">
-                      <Input
-                        {...getCVCProps({ onChange: handleChange })}
-                        id="cardCVC"
-                        required
-                        label="Security Code"
-                        value={form.cardCVC}
-                        className="w-full p-2 rounded-lg border border-gray-300"
-                      />
-                    </div>
+                  <div className="flex flex-col space-y-4 px-4 md:py-20">
+                    <TimeSlots
+                      slots={availableSlots}
+                      selectedDate={selectedDate}
+                      selectedTime={selectedTime}
+                      setSelectedDate={setSelectedDate}
+                      setSelectedTime={setSelectedTime}
+                      setSlotError={setSlotError}
+                      slotError={slotError}
+                      setERRMSG={setERRMSG}
+                      errMSG={errMSG}
+                    />
+                    <button
+                      onClick={handleConfirmBooking}
+                      className="w-full bg-[#00c19c] hover:bg-[#008a73] text-white font-bold py-2 rounded-3xl shadow-lg"
+                      disabled={isLoading}
+                    >
+                      Confirm Booking
+                    </button>
                   </div>
                 </div>
-                <div className="flex justify-center">
-                  <span className="text-center  text-red-600 px-2">
-                    {srvrErrMSG}
+                <div className="text-center text-lg font-medium py-4 px-20 flex items-center justify-center space-x-2">
+                  <span className="hidden md:block">
+                    <CiLocationOn />
                   </span>
+                  <span>{address}</span>
                 </div>
-                <button
-                  onClick={() => setSteps(5)}
-                  className="mt-4 w-full bg-[#00c19c] hover:bg-[#008a73] text-white font-bold py-2 px-4 rounded-3xl transition-colors duration-300 ease-in-out"
+              </>
+            )}
+            {steps === 6 && (
+              <ConfirmationDetails
+                setSteps={setSteps}
+                setform={setforms}
+                user={{ email: "email@example.com", phone: "+1234567890" }}
+              />
+            )}
+            {steps === 5 && (
+              <div className="flex flex-col items-center justify-center p-4">
+                <form
+                  onSubmit={handleSubmit}
+                  className="md:max-w-4xl md:mx-auto md:w-[80%] p-4 md:p-8 bg-white rounded-lg border border-gray-200 md:space-x-4"
                 >
-                  Confirm Appointment
-                </button>
-              </form>
-            </div>
-          )}
+                  <h2 className="text-xl md:text-2xl font-semibold text-center mb-6 md:mb-8">
+                    Add Payment Method
+                  </h2>
+
+                  <div className="md:mb-4">
+                    <div>
+                      <Input
+                        {...getCardNumberProps({
+                          onChange: handleCardNumberChange
+                        })}
+                        id="cardNumber"
+                        required
+                        label="Card number"
+                        value={form.cardNumber}
+                        className="w-full p-2 rounded-lg border border-gray-300"
+                      />
+                    </div>
+                    <div className="flex flex-wrap w-full">
+                      <div className="w-full md:w-1/2 md:pr-2 mb-2 md:mb-0">
+                        <Input
+                          {...getExpiryDateProps({
+                            onChange: handleCardExpiryChange
+                          })}
+                          id="cardExpDate"
+                          required
+                          label="Exp. Date"
+                          value={form.cardExpIndate}
+                          className="w-full p-2 rounded-lg border border-gray-300"
+                        />
+                      </div>
+                      <div className="w-full md:w-1/2 md:pl-2">
+                        <Input
+                          {...getCVCProps({ onChange: handleChange })}
+                          id="cardCVC"
+                          required
+                          label="Security Code"
+                          value={form.cardCVC}
+                          className="w-full p-2 rounded-lg border border-gray-300"
+                        />
+                      </div>
+                      {errMSG && (
+                        <div className="w-full mt-2">
+                          <span className="text-center text-red-600 px-2">
+                            {errMSG}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="text-center text-sm text-gray-600 mt-4">
+                    Secured by{" "}
+                    <a
+                      href="https://stripe.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#00c19c] hover:text-[#008a73]"
+                    >
+                      authorize.net
+                    </a>
+                  </div>
+
+                  {srvrErrMSG && (
+                    <div className="flex justify-center">
+                      <span className="text-center text-red-600 px-2">
+                        {srvrErrMSG}
+                      </span>
+                    </div>
+                  )}
+
+                  <button
+                    onClick={() => setSteps(5)}
+                    className="mt-4 w-full bg-[#00c19c] hover:bg-[#008a73] text-white font-bold py-2 px-4 rounded-3xl transition-colors duration-300 ease-in-out"
+                  >
+                    Confirm Appointment
+                  </button>
+                </form>
+              </div>
+            )}
+          </div>
         </div>
-      }
+      )}
 
       {isLoading && (
         <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-opacity-50 bg-gray-700">
@@ -558,7 +574,7 @@ const Appointment = () => {
         `}
           </style>
           <div className="p-6 bg-white bg-opacity-100 rounded-lg w-1/2 flex flex-col items-center justify-center">
-            <p className="text-[#008a73] mt-3 text-xl bubbling-text">
+            <p className="text-[#008a73] mt-3 text-center text-xl bubbling-text">
               {
                 "Finding Available Slots and a licensed practitioner in your state"
               }
