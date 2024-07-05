@@ -38,6 +38,12 @@ const Appointment = () => {
   const [isLoading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [dates, setDates] = useState();
+  const [noSlot, setNoSlot] = useState(false);
+
+  const [csv, setCSV] = useState();
+  const [expiryDate, setExpiryDate] = useState();
+  const [cardNumber, setCardNumber] = useState();
+  const [errMSG, setERRMSG] = useState("");
 
   useEffect(() => {
     let timer = "";
@@ -117,7 +123,9 @@ const Appointment = () => {
 
       const result = await response.json();
       setData(result);
-      if (result?.slots.length > 0) {
+      setLoading(false);
+
+      if (result?.slots?.length > 0) {
         setSteps(2);
       } else {
         setNoSlot(true);
@@ -132,14 +140,9 @@ const Appointment = () => {
 
   const [address, setAddress] = useState();
 
-
   useEffect(() => {
     setAddress(selectedState?.timeZone + " " + currentTime);
   }, [selectedState, currentTime]);
-
-  // const getDate = () => {
-  //   return selectedState.timeZone + " " + currentTime;
-  // };
 
   useEffect(() => {
     if (data?.slots) {
@@ -151,41 +154,49 @@ const Appointment = () => {
     }
   }, [data]);
 
+  const [slotError, setSlotError] = useState(false);
+
   const handleConfirmBooking = async () => {
-    let body = {
-      visit_type: 5,
-      reason: "",
-      location_id: 3,
-      provider_id: selectedTime?.provider_id,
-      patient_id: UID,
-      start_time: selectedTime?.start_time
-    };
+    if (selectedTime?.start_time) {
+      setSlotError(false);
+      let body = {
+        visit_type: 5,
+        reason: "",
+        location_id: 3,
+        provider_id: selectedTime?.provider_id,
+        patient_id: UID,
+        start_time: selectedTime?.start_time
+      };
 
-    if (true) {
-      setLoading(true);
-      try {
-        const response = await fetch(
-          `${url}api/v1/prognosis/set_appointment/`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
+      if (true) {
+        setLoading(true);
+        try {
+          const response = await fetch(
+            `${url}api/v1/prognosis/set_appointment/`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json"
+              },
 
-            body: JSON.stringify(body)
+              body: JSON.stringify(body)
+            }
+          );
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
           }
-        );
-        if (!response.ok) {
-          throw new Error("Network response was not ok");
+          const result = await response.json();
+          setData(result);
+          setSteps(3);
+        } catch (error) {
+          setError(error.message);
+        } finally {
+          setLoading(false);
         }
-        const result = await response.json();
-        setData(result);
-        setSteps(3);
-      } catch (error) {
-        setError(error.message);
-      } finally {
-        setLoading(false);
       }
+    } else {
+      setERRMSG("Please Select a slot to proceed");
+      setSlotError(true);
     }
   };
 
@@ -199,21 +210,79 @@ const Appointment = () => {
   };
   const { meta, getCardNumberProps, getExpiryDateProps, getCVCProps } =
     usePaymentInputs();
-  const [noSlot, setNoSlot] = useState(false);
 
-  const [forms, setForm] = useState({
-    name: "",
-    email: "",
-    cardNumber: "",
-    cardExpDate: "",
-    cardCVC: ""
-  });
+  const validateAndFormatExpiryDate = (expiryDate) => {
+    if (!expiryDate) throw new Error("No expiry date provided.");
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth() + 1;
+    const [month, year] = expiryDate.split("/").map(Number);
+    const fullYear = 2000 + year;
+    if (
+      fullYear < currentYear ||
+      (fullYear === currentYear && month < currentMonth)
+    ) {
+      return false;
+    }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+    return true;
   };
 
-  const handleChange = () => {};
+  const handleSubmit = async (e) => {
+    setLoading(true);
+    e.preventDefault();
+    if (validateAndFormatExpiryDate(expiryDate)) {
+      const [month, year] = expiryDate.split("/").map(Number);
+      let formatedDate = `${month.toString().padStart(2, "0")}-${year}`;
+    } else {
+      setERRMSG(
+        "The expiry date is in the past. Please check and enter a valid expiry date."
+      );
+    }
+
+    // console.log("csv", csv);
+    // console.log(
+    //   "expiryDate",
+    //   expiryDate.split("/")[0] + "-" + expiryDate.split("/")[1]
+    // );
+    // setError(null);
+    // try {
+    //   const response = await fetch(`${url}api/v1/payment/process_payment/`, {
+    //     method: "POST",
+    //     headers: {
+    //       "Content-Type": "application/json"
+    //     },
+
+    //     body: JSON.stringify({
+    //       cardNumber: cardNumber,
+    //       expirationDate: "2035-12",
+    //       cardCode: csv,
+    //       product_id: 1
+    //     })
+    //   });
+
+    //   if (!response.ok) {
+    //     throw new Error(`Oops! Something went wrong, Please contact support`);
+    //   }
+
+    //   const result = await response.json();
+    //   setData(result);
+    //   if (result?.slots.length > 0) {
+    //     setSteps(2);
+    //   } else {
+    //     setNoSlot(true);
+    //   }
+    // } catch (error) {
+    //   console.log("error.parse", error);
+    //   setError(error.message);
+    // } finally {
+    // setLoading(false);
+    // }
+  };
+
+  const handleChange = (e) => {
+    setCSV(e.target.value);
+  };
 
   useEffect(() => {
     let initialStateValue = searchParams.get("state");
@@ -228,7 +297,16 @@ const Appointment = () => {
   }, [searchParams]);
 
   const handleBack = () => {
+    setERRMSG("");
+    setSelectedTime({});
     setSteps((prev) => (prev === 5 ? prev - 2 : prev - 1));
+  };
+  const handleCardNumberChange = (e) => {
+    setCardNumber(e.target.value);
+  };
+
+  const handleCardExpiryChange = (e) => {
+    setExpiryDate(e.target.value);
   };
 
   return (
@@ -244,14 +322,16 @@ const Appointment = () => {
         <Confirmation setSteps={setSteps} setShowConfirmation={setforms} />
       )}
 
-      {steps > 1 && steps < 5 && (
-        <div className="bg-gray-100 flex justify-start">
-          <button
-            onClick={handleBack}
-            className="mx-4 w-[100px] my-4 bg-[#00c19c] hover:bg-[#008a73] text-white font-bold py-2 px-4 rounded-3xl shadow-lg transition duration-300 ease-in-out"
-          >
-            Back
-          </button>
+      {steps > 1 && steps <= 5 && (
+        <div className="grid md:grid-cols-2 md:bg-gray-100 ">
+          <div className=" md:bg-gray-100  w-full flex justify-start md:justify-center">
+            <button
+              onClick={handleBack}
+              className="mx-4 w-24 my-4 bg-[#00c19c] hover:bg-[#008a73] text-white font-bold py-2 px-4 rounded-3xl shadow-lg transition duration-300 ease-in-out"
+            >
+              Back
+            </button>
+          </div>
         </div>
       )}
 
@@ -318,13 +398,13 @@ const Appointment = () => {
       )}
 
       {
-        <div className="md:flex-grow md:flex md:pb-40 items-center justify-center bg-gray-100">
+        <div className="md:flex-grow md:flex md:pb-40 items-center  justify-center bg-gray-100">
           {steps === 2 && (
             <div className="md:max-w-4xl  md:mx-auto md:w-[80%]    sm:p-0 bg-white shadow-2xl rounded-lg flex flex-col justify-between border border-gray-200 space-y-4 sm:space-y-0 sm:space-x-4 h-full">
               <div className="text-center text-2xl font-medium mt-5 py-4 flex items-center justify-center space-x-2">
                 Select a time to meet with a licensed provider
               </div>
-              <div className="grid md:grid-cols-2 ">
+              <div className="grid lg:grid-cols-2 ">
                 <div className="flex flex-col items-center justify-center  pb-8">
                   <CustomDatePicker
                     dates={dates}
@@ -334,10 +414,14 @@ const Appointment = () => {
                 </div>
                 <div className="flex flex-col space-y-4 px-4 py-20">
                   <TimeSlots
+                    slotError={slotError}
                     setSelectedDate={setSelectedDate}
                     selectedDate={selectedDate}
                     selectedTime={selectedTime}
+                    setSlotError={setSlotError}
                     setSelectedTime={setSelectedTime}
+                    setERRMSG={setERRMSG}
+                    errMSG={errMSG}
                     slots={availableSlots}
                   />
                   <button
@@ -365,10 +449,10 @@ const Appointment = () => {
             />
           )}
           {steps === 5 && (
-            <div className="md:sflex md:flex-col md:items-center justify-center min-h-screen p-4">
+            <div className="md:sflex md:flex-col md:items-center md:py-44 justify-center min-h-screen p-4">
               <form
                 onSubmit={handleSubmit}
-                className="md:max-w-4xl  md:mx-auto md:w-[80%] p-4 md:p-8 bg-white rounded-lg border border-gray-200 md:space-x-4"
+                className="md:max-w-4xl  md:mx-auto md:w-[80%]  p-4 md:p-8 bg-white rounded-lg border border-gray-200 md:space-x-4"
               >
                 <h2 className="text-xl md:text-2xl font-semibold text-center mb-6 md:mb-8">
                   Add Payment Method
@@ -377,7 +461,9 @@ const Appointment = () => {
                 <div className="md:mb-4">
                   <div>
                     <Input
-                      {...getCardNumberProps({ onChange: handleChange })}
+                      {...getCardNumberProps({
+                        onChange: handleCardNumberChange
+                      })}
                       id="cardNumber"
                       required
                       label="Card number"
@@ -389,7 +475,9 @@ const Appointment = () => {
                   <div className="flex flex-wrap -mx-2">
                     <div className="w-full md:w-1/2 px-2 mb-2 md:mb-0">
                       <Input
-                        {...getExpiryDateProps({ onChange: handleChange })}
+                        {...getExpiryDateProps({
+                          onChange: handleCardExpiryChange
+                        })}
                         id="cardExpDate"
                         required
                         label="Exp. Date"
@@ -423,7 +511,7 @@ const Appointment = () => {
       }
 
       {isLoading && (
-        <div className="absolute bg-black top-0 left-0 w-full h-full flex flex-col items-center justify-center bg-opacity-50">
+        <div className="fixed top-0 left-0 w-full h-full flex items-center justify-center bg-opacity-50 bg-gray-700">
           <style>
             {`
           @keyframes bubble {
@@ -438,16 +526,10 @@ const Appointment = () => {
               display: inline-block;
               animation: bubble 1.5s ease-in-out infinite;
           }
-          .bubbling-text span:nth-child(1) { animation-delay: 0.1s; }
-          .bubbling-text span:nth-child(2) { animation-delay: 0.2s; }
-          .bubbling-text span:nth-child(3) { animation-delay: 0.3s; }
-          .bubbling-text span:nth-child(4) { animation-delay: 0.4s; }
-          .bubbling-text span:nth-child(5) { animation-delay: 0.5s; }
-          .bubbling-text span:nth-child(6) { animation-delay: 0.6s; }
-          .bubbling-text span:nth-child(7) { animation-delay: 0.7s; }
+
         `}
           </style>
-          <div className="p-6 bg-white bg-opacity-100 rounded-lg flex flex-col items-center justify-center">
+          <div className="p-6 bg-white bg-opacity-100 rounded-lg w-1/2 flex flex-col items-center justify-center">
             <p className="text-[#008a73] mt-3 text-xl bubbling-text">
               {
                 "Finding Available Slots and a licensed practitioner in your state"
