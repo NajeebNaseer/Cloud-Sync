@@ -7,9 +7,9 @@ const ConfirmationDetails = ({ user, setform, setSteps }) => {
   return (
     <div className="max-w-4xl w-full  rounded-lg flex justify-around sm:space-x-4">
       <div className="flex flex-col justify-start items-start p-8">
-        <div className="text-2xl text-start  font-bold text-[#00c19c] mb-4">
+        {/* <div className="text-2xl text-start  font-bold text-[#00c19c] mb-4">
           Final Step!
-        </div>
+        </div> */}
         <ul className="list-none w-full max-w-md text-lg">
           <li className="flex items-center text-[#00c19c] mb-2">
             <FaCheckCircle className="mr-2" />
@@ -28,7 +28,7 @@ const ConfirmationDetails = ({ user, setform, setSteps }) => {
             Step 4: Complete Payment
           </li>
         </ul>
-        <div className="flex items-center justify-center">
+        {/* <div className="flex items-center justify-center">
           <button
             // onClick={() => setform(true)}
             // onClick={() => setSteps(1)}
@@ -36,7 +36,7 @@ const ConfirmationDetails = ({ user, setform, setSteps }) => {
           >
             Complete Payment
           </button>
-        </div>
+        </div> */}
 
         <div className="mt-6 w-full max-w-md">
           <h3 className="text-xl font-semibold mb-2">
